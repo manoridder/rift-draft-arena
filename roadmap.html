@@ -89,6 +89,8 @@ input[type=file]{display:none}
 </div>
 <script>
 "use strict";
+/* Read-only by default. Open roadmap.html?edit to enable editing, dragging and Save/Load. */
+var EDIT=/[?&]edit\b/i.test(location.search)||/(^|#)edit\b/i.test(location.hash);
 var DEFAULTS=[
  {s:"done",t:"Side select plus pro draft order",n:"Choose blue or red side, one or two picks at once like championship drafting.",d:"Blue or Red choice before every game. Full tournament sequence: B-R alternating bans (3 each), picks B, RR, BB, R, second ban round R-B-R-B (2 each), then picks R, BB, R. Blue always opens, Red always closes."},
  {s:"done",t:"Interleaved double ban phases",n:"Ban phase intertwined with drafting, second ban phase of 2 each, like pro play.",d:"Both ban rounds sit inside the draft flow on one screen, with live ban rows for both teams. Your bans use the full searchable grid, your picks use the 3-option arena offers."},
@@ -128,19 +130,21 @@ function render(){
     col.className="col";col.dataset.s=c[0];
     col.innerHTML="<h2>"+c[1]+"</h2>";
     byCol(c[0]).forEach(function(item){ col.appendChild(makeCard(item)); });
-    var add=document.createElement("button");
-    add.className="addbtn";add.textContent="+ Add card";
-    add.addEventListener("click",function(){
-      var it={id:"c"+(idSeq++),s:c[0],t:"New card",n:"",d:""};
-      state.items.push(it);editingId=it.id;render();
-    });
-    col.appendChild(add);
-    col.addEventListener("dragover",function(e){e.preventDefault();col.classList.add("dragover");});
-    col.addEventListener("dragleave",function(){col.classList.remove("dragover");});
-    col.addEventListener("drop",function(e){
-      e.preventDefault();col.classList.remove("dragover");
-      dropMove(c[0],null);
-    });
+    if(EDIT){
+      var add=document.createElement("button");
+      add.className="addbtn";add.textContent="+ Add card";
+      add.addEventListener("click",function(){
+        var it={id:"c"+(idSeq++),s:c[0],t:"New card",n:"",d:""};
+        state.items.push(it);editingId=it.id;render();
+      });
+      col.appendChild(add);
+      col.addEventListener("dragover",function(e){e.preventDefault();col.classList.add("dragover");});
+      col.addEventListener("dragleave",function(){col.classList.remove("dragover");});
+      col.addEventListener("drop",function(e){
+        e.preventDefault();col.classList.remove("dragover");
+        dropMove(c[0],null);
+      });
+    }
     board.appendChild(col);
   });
   var done=byCol("done").length;
@@ -152,47 +156,49 @@ function makeCard(item){
   var d=document.createElement("div");
   d.className="card"+(openIds[item.id]?" open":"");
   if(editingId===item.id){ d.appendChild(editForm(item)); return d; }
-  d.draggable=true;
+  if(EDIT)d.draggable=true;
   var p=PILLS[item.s];
   d.innerHTML='<span class="pill '+p[1]+'">'+p[0]+'</span>'+
     '<b class="title">'+esc(item.t)+'</b>'+
     '<div class="det">'+(item.n?'<span class="src">Note: "'+esc(item.n)+'"</span>':'')+esc(item.d)+'</div>';
-  var btns=document.createElement("div");btns.className="cbtns";
-  btns.innerHTML='<button class="btn ghost" data-a="left">&#9664;</button>'+
-    '<button class="btn ghost" data-a="right">&#9654;</button>'+
-    '<span class="spacer"></span>'+
-    '<button class="btn ghost" data-a="edit">Edit</button>'+
-    '<button class="btn ghost" data-a="del">Del</button>';
-  d.appendChild(btns);
   d.querySelector(".title").addEventListener("click",function(){
     openIds[item.id]=!openIds[item.id];render();
   });
-  btns.addEventListener("click",function(e){
-    var a=e.target.dataset&&e.target.dataset.a;
-    if(!a)return;
-    e.stopPropagation();
-    if(a==="edit"){editingId=item.id;render();}
-    else if(a==="del"){
-      if(confirm('Delete "'+item.t+'"?')){
-        state.items=state.items.filter(function(x){return x.id!==item.id;});render();
+  if(EDIT){
+    var btns=document.createElement("div");btns.className="cbtns";
+    btns.innerHTML='<button class="btn ghost" data-a="left">&#9664;</button>'+
+      '<button class="btn ghost" data-a="right">&#9654;</button>'+
+      '<span class="spacer"></span>'+
+      '<button class="btn ghost" data-a="edit">Edit</button>'+
+      '<button class="btn ghost" data-a="del">Del</button>';
+    d.appendChild(btns);
+    btns.addEventListener("click",function(e){
+      var a=e.target.dataset&&e.target.dataset.a;
+      if(!a)return;
+      e.stopPropagation();
+      if(a==="edit"){editingId=item.id;render();}
+      else if(a==="del"){
+        if(confirm('Delete "'+item.t+'"?')){
+          state.items=state.items.filter(function(x){return x.id!==item.id;});render();
+        }
       }
-    }
-    else{
-      var idx=ORDER.indexOf(item.s)+(a==="left"?-1:1);
-      if(idx>=0&&idx<ORDER.length){item.s=ORDER[idx];render();}
-    }
-  });
-  d.addEventListener("dragstart",function(e){
-    draggingId=item.id;d.classList.add("dragging");
-    e.dataTransfer.setData("text/plain",item.id);
-    e.dataTransfer.effectAllowed="move";
-  });
-  d.addEventListener("dragend",function(){draggingId=null;d.classList.remove("dragging");render();});
-  d.addEventListener("dragover",function(e){e.preventDefault();e.stopPropagation();});
-  d.addEventListener("drop",function(e){
-    e.preventDefault();e.stopPropagation();
-    dropMove(item.s,item.id);
-  });
+      else{
+        var idx=ORDER.indexOf(item.s)+(a==="left"?-1:1);
+        if(idx>=0&&idx<ORDER.length){item.s=ORDER[idx];render();}
+      }
+    });
+    d.addEventListener("dragstart",function(e){
+      draggingId=item.id;d.classList.add("dragging");
+      e.dataTransfer.setData("text/plain",item.id);
+      e.dataTransfer.effectAllowed="move";
+    });
+    d.addEventListener("dragend",function(){draggingId=null;d.classList.remove("dragging");render();});
+    d.addEventListener("dragover",function(e){e.preventDefault();e.stopPropagation();});
+    d.addEventListener("drop",function(e){
+      e.preventDefault();e.stopPropagation();
+      dropMove(item.s,item.id);
+    });
+  }
   return d;
 }
 
@@ -269,6 +275,11 @@ document.getElementById("resetBtn").addEventListener("click",function(){
   }
 });
 
+if(!EDIT){
+  var _tb=document.querySelector(".toolbar"); if(_tb)_tb.style.display="none";
+  var _hint=document.querySelector(".hint"); if(_hint)_hint.style.display="none";
+  var _sub=document.querySelector(".sub"); if(_sub)_sub.textContent="The live Rift Draft Arena roadmap. Click a card title to expand it.";
+}
 function init(){
   if(typeof fetch!=="function"){state.items=freshDefaults();render();return;}
   fetch("roadmap-data.json",{cache:"no-store"})
