@@ -1,0 +1,119 @@
+{
+  "v": 1,
+  "app": "rift-draft-arena-roadmap",
+  "savedAt": "2026-06-12T21:53:12.059Z",
+  "items": [
+    {
+      "id": "c1",
+      "s": "done",
+      "t": "Side select plus pro draft order",
+      "n": "Choose blue or red side, one or two picks at once like championship drafting.",
+      "d": "Blue or Red choice before every game. Full tournament sequence: B-R alternating bans (3 each), picks B, RR, BB, R, second ban round R-B-R-B (2 each), then picks R, BB, R. Blue always opens, Red always closes."
+    },
+    {
+      "id": "c2",
+      "s": "done",
+      "t": "Interleaved double ban phases",
+      "n": "Ban phase intertwined with drafting, second ban phase of 2 each, like pro play.",
+      "d": "Both ban rounds sit inside the draft flow on one screen, with live ban rows for both teams. Your bans use the full searchable grid, your picks use the 3-option arena offers."
+    },
+    {
+      "id": "c3",
+      "s": "done",
+      "t": "Outcome math fully visible",
+      "n": "How do I calc the outcome? Show more detail on how the AI scored so losing makes sense.",
+      "d": "The Math panel in every post game: the full formula, your totals and the enemy totals side by side (tiers, synergy, counters, items), the enemy item verdicts, and the exact phase rolls (you 78 rolled 81, enemy 74 rolled 70). Your nerd friend can recalculate every result."
+    },
+    {
+      "id": "c4",
+      "s": "done",
+      "t": "Tiers compressed, choices matter more",
+      "n": "It feels like the tier list matters more than strategic picking. Maybe tiers should be less relevant.",
+      "d": "Tier points went from a 6.5 point spread per champ to 4 (S=9 down to D=5). Max tier gap between teams is now 20 points while synergy, counters and items can swing over 60. First step, more rebalance lands with the Phase 2 scoring rework."
+    },
+    {
+      "id": "c5",
+      "s": "done",
+      "t": "Coach score in the share text",
+      "n": "Power 61 vs 83, items 15/25. But what does that say about how good you do?",
+      "d": "Share and result banner now lead with a Coach score (0 to 100, plus a letter grade) computed only from what you control: 45 percent items, 40 percent synergy, 15 percent counters. Tier luck excluded. Side and phase squares included."
+    },
+    {
+      "id": "c6",
+      "s": "done",
+      "t": "SR-only data, wrong items fixed",
+      "n": "Opportunity is Arena only, Trinity was not buffed on SR, Locke is not in the game.",
+      "d": "Verified against the official 26.12 notes: every item change that patch sits under the Arena header, zero SR item changes. Game corrected: Opportunity replaced by Youmuu's Ghostblade, all false buffed-in-26.12 labels removed, 26.11 SR support item labels kept, Locke removed from the pool, real 26.12 SR champion notes added (Aatrox to Yuumi)."
+    },
+    {
+      "id": "c7",
+      "s": "done",
+      "t": "Arena offers standard, daily, easter egg, audio",
+      "n": "Earlier feedback rolled in.",
+      "d": "3 random options with 2 rerolls is simply how drafting works now. Daily challenge with shared AI seed. Hextech chest easter egg with Hextech Heist. Warriors Of The Flame as soundtrack, volume sliders, League style UI pass."
+    },
+    {
+      "id": "c8",
+      "s": "next",
+      "t": "Item overhaul: 6 items, distribute freely",
+      "n": "6 items total, max 2 per champion, distribute strategically to the champs that matter most for the comp.",
+      "d": "Item budget of 6 across the team, hard cap 2 per champion. Stacking your win condition becomes a real decision. Item pool rebuilt from verified Summoner's Rift data, each entry with a patch reference so nothing stale slips in again."
+    },
+    {
+      "id": "c9",
+      "s": "next",
+      "t": "Comp identity system",
+      "n": "Choose how the team plays: protect the carry, skirmish, teamfight, scaling, early game, objectives. Less synergy punishment when that was the plan.",
+      "d": "Declare your game plan at draft start. Synergy is then scored against that plan, not one universal mold: a poke comp without frontline is fine, a declared frontline comp without tanks gets punished extra hard, nailing your plan pays out extra. This replaces the current one-size-fits-all synergy table."
+    },
+    {
+      "id": "c10",
+      "s": "next",
+      "t": "Strategic value scoring",
+      "n": "Score points not just on tier list champs but on strategic value. How do we determine this?",
+      "d": "With identities and the 6-item budget in place: plan fit, item allocation quality and counter play become the main score drivers, tier points become the floor, not the ceiling. Balance verified by simulation before shipping, same as the draft engine."
+    },
+    {
+      "id": "c11",
+      "s": "next",
+      "t": "Data pipeline and patch updates",
+      "n": "How do I keep items, champs, buffs and nerfs up to date?",
+      "d": "Step one shipped: the SR item importer (sr-item-importer.html) pulls live Data Dragon data, filters map 11 (Classic Summoner's Rift), and exports sr-items.json with stats per item. Next: the game consumes that JSON as its item pool with a visible version label, the champion roster autoloads from ddragon, and each patch we walk the official notes (SR sections only) together for tiers and notes."
+    },
+    {
+      "id": "c12",
+      "s": "plan",
+      "t": "Phase 3: longer, tenser matches",
+      "n": "The fighting part is really short, the dots get pushed back fast, you see it is cooked early and then you are bored.",
+      "d": "Match restructured into more beats: lane phase, first objective, mid game skirmish, Baron, final fight. Smaller map pushes per beat, comeback shutdown mechanics so a lost early game stays winnable, running gold lead bar instead of an instant verdict, pacing with actual suspense."
+    },
+    {
+      "id": "c13",
+      "s": "plan",
+      "t": "Phase 4: PvP, local first",
+      "n": "A mode where both people pick teams and fight it out. Local play first, then explore online. No clue how to code that safely hahaha.",
+      "d": "Hotseat first: drafts are public in real League anyway, so alternating turns on one device works naturally, item phase taken in turns. Online step two: correspondence codes (exchange a compact state string per turn, deterministic sim resolves identically on both ends, zero server). Step three optional: a tiny WebSocket relay (about 30 lines of Node) that only forwards schema-validated draft messages, no accounts, no storage."
+    },
+    {
+      "id": "c14",
+      "s": "idea",
+      "t": "Tiers even less relevant",
+      "n": "This is something to explore.",
+      "d": "After Phase 2 lands, run the sims again and test variants where tiers only break ties. If knowledge-based play stays rewarding without them dominating, push further."
+    },
+    {
+      "id": "c15",
+      "s": "idea",
+      "t": "Coach training angle",
+      "n": "If this works well maybe coaches can finally learn how to draft properly.",
+      "d": "The math panel plus comp identities is basically a draft trainer already. Possible later: scenario mode (here is the enemy comp, fix the draft), and exportable post game reports. Worth revisiting once Phase 2 proves out, also interesting for your own training work."
+    },
+    {
+      "id": "c16",
+      "s": "idea",
+      "t": "Daily leaderboard",
+      "n": "Follow-up on the viral angle.",
+      "d": "Coach scores on the daily are comparable. A shared leaderboard needs a tiny backend, so this rides along with the Phase 4 online work if that happens."
+    }
+  ]
+}
