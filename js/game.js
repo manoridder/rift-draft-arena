@@ -1,0 +1,740 @@
+"use strict";
+/* ================= SOUND ================= */
+var sndOn=true, AC=null, master=null, delayNode=null, noiseBuf=null;
+var sfxVol=0.5, musVol=0.35;
+function ensureAC(){
+  if(AC)return;
+  AC=new (window.AudioContext||window.webkitAudioContext)();
+  master=AC.createGain(); master.gain.value=sfxVol; master.connect(AC.destination);
+  var dl=AC.createDelay(0.6); dl.delayTime.value=0.16;
+  var fb=AC.createGain(); fb.gain.value=0.25;
+  var wet=AC.createGain(); wet.gain.value=0.16;
+  dl.connect(fb); fb.connect(dl); dl.connect(wet); wet.connect(master);
+  delayNode=dl;
+  var len=Math.floor(AC.sampleRate*0.5);
+  noiseBuf=AC.createBuffer(1,len,AC.sampleRate);
+  var d=noiseBuf.getChannelData(0);
+  for(var i=0;i<len;i++)d[i]=Math.random()*2-1;
+}
+function env(g,t,a,peak,dur){
+  g.gain.setValueAtTime(0.0001,t);
+  g.gain.exponentialRampToValueAtTime(peak,t+a);
+  g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+}
+function oscS(type,f0,f1,t,dur,peak,echo){
+  var o=AC.createOscillator(),g=AC.createGain(),fl=AC.createBiquadFilter();
+  fl.type="lowpass"; fl.frequency.value=2400;
+  o.type=type; o.frequency.setValueAtTime(f0,t);
+  if(f1)o.frequency.exponentialRampToValueAtTime(f1,t+dur);
+  env(g,t,0.006,peak,dur);
+  o.connect(fl); fl.connect(g); g.connect(master);
+  if(echo){var s=AC.createGain();s.gain.value=0.6;g.connect(s);s.connect(delayNode);}
+  o.start(t); o.stop(t+dur+0.05);
+}
+function noiseS(t,dur,peak,fType,f0,f1){
+  var src=AC.createBufferSource(); src.buffer=noiseBuf;
+  var fl=AC.createBiquadFilter(); fl.type=fType;
+  fl.frequency.setValueAtTime(f0,t);
+  if(f1)fl.frequency.exponentialRampToValueAtTime(f1,t+dur);
+  fl.Q.value=1.1;
+  var g=AC.createGain(); env(g,t,0.004,peak,dur);
+  src.connect(fl); fl.connect(g); g.connect(master);
+  src.start(t); src.stop(t+dur+0.05);
+}
+function snd(name){
+  if(!sndOn)return;
+  try{
+    ensureAC(); if(AC.state==="suspended")AC.resume();
+    var t=AC.currentTime+0.02;
+    if(name==="click"){noiseS(t,0.05,0.14,"bandpass",2600);oscS("sine",520,null,t,0.05,0.04);}
+    else if(name==="pick"){oscS("triangle",659,null,t,0.3,0.14,true);oscS("triangle",663,null,t,0.3,0.08,true);oscS("triangle",988,null,t+0.09,0.36,0.12,true);}
+    else if(name==="ban"){noiseS(t,0.26,0.26,"lowpass",900,110);oscS("sine",165,52,t,0.32,0.26);}
+    else if(name==="reroll"){noiseS(t,0.2,0.13,"bandpass",600,3400);oscS("triangle",880,1318,t,0.18,0.07,true);}
+    else if(name==="pwin"){oscS("triangle",587,null,t,0.22,0.11,true);oscS("triangle",880,null,t+0.06,0.32,0.13,true);}
+    else if(name==="plose"){oscS("triangle",392,null,t,0.22,0.11);oscS("triangle",262,200,t+0.08,0.32,0.11);}
+    else if(name==="victory"){[523,659,784,1046,1318].forEach(function(f,i){oscS("triangle",f,null,t+i*0.11,0.42,0.12,true);oscS("sine",f/2,null,t+i*0.11,0.42,0.05);});}
+    else if(name==="defeat"){[440,349,262,175].forEach(function(f,i){oscS("triangle",f,f*0.97,t+i*0.16,0.44,0.11,true);});}
+  }catch(e){}
+}
+document.getElementById("sndBtn").addEventListener("click",function(){
+  sndOn=!sndOn; this.textContent="Effects: "+(sndOn?"on":"off"); if(sndOn)snd("pick");
+});
+/* ---- music + easter egg ---- */
+var bgm=document.getElementById("bgm"), egg=document.getElementById("eggTrack");
+var musOn=false, eggOn=false, bgmWasOn=false;
+var musBtn=document.getElementById("musBtn");
+var eggOverlay=document.getElementById("eggOverlay");
+var chestBox=document.getElementById("chestBox");
+function closeEgg(){
+  if(eggOverlay)eggOverlay.classList.remove("show");
+  if(chestBox)chestBox.classList.remove("chest-open");
+  if(eggOn){egg.pause();eggOn=false;}
+  if(bgmWasOn&&musOn)bgm.play().catch(function(){});
+}
+musBtn.addEventListener("click",function(){
+  if(eggOn)closeEgg();
+  musOn=!musOn; musBtn.textContent="Music: "+(musOn?"on":"off");
+  if(musOn){bgm.volume=musVol;bgm.play().catch(function(){musOn=false;musBtn.textContent="Music: off";});}
+  else{bgm.pause();}
+});
+document.getElementById("eggDock").addEventListener("click",function(){
+  snd("pick");
+  bgmWasOn=musOn;
+  if(musOn)bgm.pause();
+  eggOverlay.classList.add("show");
+  setTimeout(function(){chestBox.classList.add("chest-open");},180);
+  eggOn=true; egg.currentTime=0; egg.volume=musVol;
+  egg.play().catch(function(){});
+});
+if(chestBox){
+  chestBox.addEventListener("click",function(){
+    if(egg.paused){chestBox.classList.add("chest-open");egg.play().catch(function(){});eggOn=true;}
+    else{chestBox.classList.remove("chest-open");egg.pause();eggOn=false;}
+  });
+}
+egg.addEventListener("ended",function(){
+  chestBox.classList.remove("chest-open"); eggOn=false;
+});
+document.getElementById("eggClose").addEventListener("click",closeEgg);
+eggOverlay.addEventListener("click",function(e){ if(e.target===eggOverlay)closeEgg(); });
+/* ---- audio settings ---- */
+document.getElementById("audioBtn").addEventListener("click",function(){
+  snd("click");
+  document.getElementById("audioOverlay").classList.add("show");
+});
+document.getElementById("audioClose").addEventListener("click",function(){
+  document.getElementById("audioOverlay").classList.remove("show");
+});
+document.getElementById("howBtn").addEventListener("click",function(){
+  snd("click");
+  document.getElementById("howOverlay").classList.add("show");
+});
+document.getElementById("howClose").addEventListener("click",function(){
+  document.getElementById("howOverlay").classList.remove("show");
+});
+document.getElementById("howOverlay").addEventListener("click",function(e){
+  if(e.target===this)this.classList.remove("show");
+});
+document.getElementById("musVolR").addEventListener("input",function(){
+  musVol=this.value/100;
+  document.getElementById("musVolV").textContent=this.value;
+  bgm.volume=musVol; egg.volume=musVol;
+});
+document.getElementById("sfxVolR").addEventListener("input",function(){
+  sfxVol=this.value/100;
+  document.getElementById("sfxVolV").textContent=this.value;
+  if(master)master.gain.value=sfxVol;
+});
+
+/* ================= SCORING ================= */
+function synergy(team){
+  var s=[]; var fl=cnt(team,"f");
+  if(fl>=2)s.push(["Sturdy frontline ("+fl+" tanks)",6]);
+  else if(fl===1)s.push(["Thin frontline",2]);
+  else s.push(["No frontline, your carries are exposed",-8]);
+  var ap=cnt(team,"a"),ad=cnt(team,"d");
+  if(ap>0&&ad>0)s.push(["Mixed damage (AP and AD)",6]);
+  else s.push(["One-dimensional damage, enemy stacks a single resistance",-6]);
+  var eng=cnt(team,"e");
+  if(eng>=1&&cnt(team,"v")>=1)s.push(["Engage with follow-up",6]);
+  else if(eng===0)s.push(["No engage, you wait for their mistakes",-4]);
+  var cc=cnt(team,"c");
+  if(cc>=3)s.push(["CC chain ("+cc+" champs with CC)",5]);
+  if(cnt(team,"g")>=2)s.push(["Map pressure through globals",3]);
+  return s;
+}
+function counters(meT,enT){
+  var out=[];
+  if(cnt(meT,"e")>=2&&cnt(enT,"p")>=2)out.push(["Your engage catches their poke comp",4]);
+  if(cnt(meT,"p")>=2&&cnt(enT,"e")===0)out.push(["Free poke, they cannot punish you",3]);
+  if(cnt(meT,"f")>=2&&cnt(enT,"d")>=4)out.push(["Armor stacking into their full AD",3]);
+  if(cnt(meT,"n")>=1&&cnt(enT,"e")>=2)out.push(["Your enchanter saves the engage target",2]);
+  if(cnt(meT,"r")>=2&&cnt(enT,"h")>=3)out.push(["Early stomp before they come online",3]);
+  if(cnt(meT,"v")>=2&&cnt(enT,"f")===0)out.push(["Their backline has no protection against your dives",3]);
+  return out;
+}
+function evalTeam(team,items,enemy){
+  var base=team.reduce(function(a,c){return a+TIERPTS[c[2]];},0);
+  var syn=synergy(team); var synT=syn.reduce(function(a,x){return a+x[1];},0);
+  var ctr=counters(team,enemy); var ctrT=ctr.reduce(function(a,x){return a+x[1];},0);
+  var itemRows=team.map(function(c,i){
+    var it=ITEMDEFS[items[i]]; var r=it.v(c,team,enemy);
+    return {champ:c,item:it.n,pts:r[0],why:r[1]};
+  });
+  var itemT=itemRows.reduce(function(a,x){return a+x.pts;},0);
+  return {base:base,syn:syn,synT:synT,ctr:ctr,ctrT:ctrT,items:itemRows,itemT:itemT,
+          total:Math.round(base+synT+ctrT+itemT)};
+}
+function phasePower(ev,team){
+  var b=ev.total;
+  return{ early:b+2*cnt(team,"r")+1.5*cnt(team,"e")+cnt(team,"v")-1.5*cnt(team,"h"),
+          mid:b+cnt(team,"c")+.5*cnt(team,"e")+.5*cnt(team,"p"),
+          late:b+2.5*cnt(team,"h")+.5*cnt(team,"c") };
+}
+
+/* ================= MODES, RNG, LADDER ================= */
+var MODE="ranked";
+var R=Math.random;
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;var t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function todayStr(){var d=new Date();return d.getUTCFullYear()+"-"+String(d.getUTCMonth()+1).padStart(2,"0")+"-"+String(d.getUTCDate()).padStart(2,"0");}
+function todaySeed(){return +todayStr().replace(/-/g,"");}
+
+var RANKS=["Iron","Bronze","Silver","Gold","Platinum","Emerald","Diamond","Master","Grandmaster","Challenger"];
+var ladder={ri:0,lp:0,champion:false};
+function skillNow(){return MODE==="daily"?5:ladder.ri;}
+function renderRank(){
+  document.getElementById("rankTxt").textContent=RANKS[ladder.ri]+" \u00b7 "+ladder.lp+" LP";
+  document.getElementById("lpFill").style.width=Math.min(100,ladder.lp)+"%";
+}
+function applyLP(won){
+  var d=won?25:-20; var old=RANKS[ladder.ri];
+  ladder.lp+=d;
+  if(ladder.lp>=100){
+    if(ladder.ri<RANKS.length-1){ladder.ri++;ladder.lp=0;}
+    else{ladder.lp=100;if(!ladder.champion){ladder.champion=true;document.getElementById("champOverlay").classList.add("show");}}
+  }
+  if(ladder.lp<0){ if(ladder.ri>0){ladder.ri--;ladder.lp=60;} else ladder.lp=0; }
+  renderRank();
+  return {delta:d,promo:RANKS[ladder.ri]!==old&&won,demo:RANKS[ladder.ri]!==old&&!won};
+}
+
+/* ================= GAME STATE ================= */
+var FOES=["Iron Wolves","Hex Raiders","Void Brothers","Baron Bandits","Crit Happens","Gank Squad","Mid Diff Inc","Elder Dragons","Nexus Nightmares","Peak Performance"];
+var G=null;
+function newGame(){
+  G={taken:{},myBans:[],foeBans:[],my:{TOP:null,JGL:null,MID:null,ADC:null,SUP:null},
+     foe:{TOP:null,JGL:null,MID:null,ADC:null,SUP:null},
+     side:null,seq:null,idx:0,items:[null,null,null,null,null],
+     arena:true,rerolls:2,offer:null,
+     foeName:MODE==="daily"?"Daily Gauntlet":FOES[Math.min(skillNow(),FOES.length-1)]};
+}
+function teamArr(p){return ROLES.map(function(r){return p[r];});}
+function openRoles(p){return ROLES.filter(function(r){return !p[r];});}
+
+/* ================= AI ================= */
+function tierW(t){ return Math.pow(TIERPTS[t]/6.5, 1+skillNow()*0.32); }
+function aiPick(){
+  var roles=openRoles(G.foe);
+  var pool=[];
+  roles.forEach(function(r){ byRole[r].forEach(function(c){ if(!G.taken[c[0]]) pool.push(c); }); });
+  var meT=teamArr(G.my), foeT=teamArr(G.foe);
+  var aware=skillNow()/9;
+  var lastSlot=roles.length===1;
+  var scored=pool.map(function(c){
+    var w=tierW(c[2]);
+    if(R()<aware){
+      if(cnt(meT,"p")>=2&&has(c,"e"))w*=1.7;
+      if(cnt(meT,"h")>=3&&has(c,"r"))w*=1.5;
+      if(cnt(meT,"e")>=2&&has(c,"n"))w*=1.5;
+      if(cnt(meT,"d")>=4&&has(c,"f"))w*=1.4;
+    }
+    if(skillNow()>=3){
+      if(lastSlot&&cnt(foeT,"f")===0&&has(c,"f"))w*=2.4;
+      if(lastSlot&&cnt(foeT,"a")===0&&has(c,"a"))w*=1.8;
+      if(lastSlot&&cnt(foeT,"d")===0&&has(c,"d"))w*=1.8;
+    }
+    return [c,w];
+  });
+  var tot=scored.reduce(function(a,x){return a+x[1];},0), r=R()*tot;
+  for(var i=0;i<scored.length;i++){r-=scored[i][1];if(r<=0)return scored[i][0];}
+  return scored[scored.length-1][0];
+}
+function aiBan(){
+  var pool=C.filter(function(c){return !G.taken[c[0]];});
+  var scored=pool.map(function(c){return [c,tierW(c[2])];});
+  var tot=scored.reduce(function(a,x){return a+x[1];},0), r=R()*tot;
+  for(var i=0;i<scored.length;i++){r-=scored[i][1];if(r<=0)return scored[i][0];}
+  return scored[0][0];
+}
+function aiItems(foeT,meT){
+  var smart=0.3+skillNow()*0.078;
+  return foeT.map(function(c){
+    var opts=CLASSOPTS[classOf(c)];
+    if(R()<smart){
+      var best=opts[0],bp=-1;
+      opts.forEach(function(id){var p=ITEMDEFS[id].v(c,foeT,meT)[0];if(p>bp){bp=p;best=id;}});
+      return best;
+    }
+    return opts[Math.floor(R()*opts.length)];
+  });
+}
+
+/* ================= NAV & SHARED UI ================= */
+function show(id){
+  document.querySelectorAll(".screen").forEach(function(s){s.classList.remove("active");});
+  document.getElementById(id).classList.add("active");
+  window.scrollTo(0,0);
+}
+function bindTabs(section,onChange){
+  section.querySelectorAll(".tab").forEach(function(t){
+    t.addEventListener("click",function(){
+      section.querySelectorAll(".tab").forEach(function(x){x.classList.remove("on");});
+      t.classList.add("on"); snd("click"); onChange(t.dataset.role);
+    });
+  });
+}
+function champGrid(host,filterRole,q,opts){
+  host.innerHTML="";
+  var g=document.createElement("div");g.className="grid";
+  C.filter(function(c){
+    if(filterRole!=="ALL"&&c[1]!==filterRole)return false;
+    if(q&&c[0].toLowerCase().indexOf(q)<0)return false;
+    return true;
+  }).sort(function(a,b){return a[0].localeCompare(b[0]);}).forEach(function(c){
+    var d=document.createElement("div");
+    var off=opts.isOff(c);
+    d.className="champ"+(off?" off":"");
+    d.innerHTML=(opts.badges?'<span class="tbadge" style="background:'+TIERCOL[c[2]]+'">'+c[2]+'</span>':"")+
+      picHtml(c,"cpic")+'<div class="cn">'+c[0]+'</div><div class="cr">'+ROLENL[c[1]]+'</div>';
+    if(!off)d.addEventListener("click",function(){opts.onPick(c);});
+    g.appendChild(d);
+  });
+  host.appendChild(g);
+}
+
+/* ================= CODEX ================= */
+var codexRole="ALL",codexQ="";
+function openInfo(c){
+  document.getElementById("infoPic").innerHTML=imgTag(c);
+  document.getElementById("infoName").textContent=c[0];
+  document.getElementById("infoRole").textContent={TOP:"Top lane",JGL:"Jungle",MID:"Mid lane",ADC:"ADC",SUP:"Support"}[c[1]];
+  var tp=document.getElementById("infoTier");
+  tp.textContent=c[2]; tp.style.background=TIERCOL[c[2]];
+  document.getElementById("infoTags").innerHTML=c[3].split(" ").map(function(t){return "<span>"+TAGNAMES[t]+"</span>";}).join("");
+  document.getElementById("infoNote").textContent=NOTES[c[0]]||"No headline changes in 26.11 or 26.12. Tier based on current stat-site performance.";
+  document.getElementById("infoOverlay").classList.add("show");
+}
+document.getElementById("infoClose").addEventListener("click",function(){document.getElementById("infoOverlay").classList.remove("show");});
+function renderCodex(){
+  var host=document.getElementById("codexGrid");host.innerHTML="";
+  ["S","A","B","C","D"].forEach(function(t){
+    var sub=C.filter(function(c){
+      if(c[2]!==t)return false;
+      if(codexRole!=="ALL"&&c[1]!==codexRole)return false;
+      if(codexQ&&c[0].toLowerCase().indexOf(codexQ)<0)return false;
+      return true;
+    });
+    if(!sub.length)return;
+    var h=document.createElement("div");h.className="tierhead";h.style.color=TIERCOL[t];
+    h.textContent=t+" tier ("+sub.length+")";host.appendChild(h);
+    var g=document.createElement("div");g.className="grid";
+    sub.sort(function(a,b){return a[0].localeCompare(b[0]);}).forEach(function(c){
+      var d=document.createElement("div");d.className="champ";
+      d.innerHTML='<span class="tbadge" style="background:'+TIERCOL[t]+'">'+t+'</span>'+picHtml(c,"cpic")+'<div class="cn">'+c[0]+'</div><div class="cr">'+ROLENL[c[1]]+'</div>';
+      d.addEventListener("click",function(){snd("click");openInfo(c);});
+      g.appendChild(d);
+    });
+    host.appendChild(g);
+  });
+}
+bindTabs(document.getElementById("scr-codex"),function(r){codexRole=r;renderCodex();});
+document.getElementById("codexSearch").addEventListener("input",function(e){codexQ=e.target.value.toLowerCase();renderCodex();});
+document.getElementById("openCodex").addEventListener("click",function(){snd("click");renderCodex();show("scr-codex");});
+document.getElementById("codexBack").addEventListener("click",function(){show("scr-menu");});
+document.getElementById("homebtn").addEventListener("click",function(){show("scr-menu");});
+
+/* ================= DRAFT (pro format) ================= */
+var draftRole="ALL",draftQ="";
+var SEQ_PRO=[
+ {t:"B",act:"ban"},{t:"R",act:"ban"},{t:"B",act:"ban"},{t:"R",act:"ban"},{t:"B",act:"ban"},{t:"R",act:"ban"},
+ {t:"B",act:"pick"},{t:"R",act:"pick"},{t:"R",act:"pick"},{t:"B",act:"pick"},{t:"B",act:"pick"},{t:"R",act:"pick"},
+ {t:"R",act:"ban"},{t:"B",act:"ban"},{t:"R",act:"ban"},{t:"B",act:"ban"},
+ {t:"R",act:"pick"},{t:"B",act:"pick"},{t:"B",act:"pick"},{t:"R",act:"pick"}
+];
+function buildSeq(){
+  G.seq=SEQ_PRO.map(function(s){return {who:(s.t===G.side?"P":"E"),act:s.act};});
+  G.idx=0;
+}
+function cur(){return G.seq[G.idx];}
+function draftDone(){return G.idx>=G.seq.length;}
+function phaseName(){
+  if(G.idx<6)return "Ban phase 1";
+  if(G.idx<12)return "Pick phase 1";
+  if(G.idx<16)return "Ban phase 2";
+  return "Pick phase 2";
+}
+function renderTeams(){
+  [["mySlots",G.my],["foeSlots",G.foe]].forEach(function(pair){
+    var host=document.getElementById(pair[0]);host.innerHTML="";
+    ROLES.forEach(function(r){
+      var c=pair[1][r];
+      host.innerHTML+='<div class="pslot'+(c?" filled":"")+'">'+
+        '<div class="pic">'+(c?imgTag(c):"?")+'</div>'+
+        '<div class="rl">'+ROLENL[r]+'</div><div class="nm">'+(c?c[0]:"")+'</div></div>';
+    });
+  });
+}
+function renderBans(){
+  [["myBans",G.myBans],["foeBans",G.foeBans]].forEach(function(pair){
+    var host=document.getElementById(pair[0]);host.innerHTML="";
+    pair[1].forEach(function(c){
+      host.innerHTML+='<div class="ban"><img src="'+imgUrl(c)+'" data-alt="'+imgUrl2(c)+'" alt="'+c[0]+'" onerror="imgFail(this)"><span class="x">&times;</span></div>';
+    });
+  });
+}
+function setDraftMsg(){
+  var el=document.getElementById("draftMsg");
+  var title=document.getElementById("draftPhaseTitle");
+  if(draftDone()){title.textContent="Draft complete";el.textContent="";el.classList.remove("enemy");return;}
+  title.textContent=phaseName();
+  var a=cur();
+  if(a.who==="P"){el.textContent=a.act==="ban"?"Your ban":"Your pick";el.classList.remove("enemy");}
+  else{el.textContent=G.foeName+(a.act==="ban"?" is banning...":" is picking...");el.classList.add("enemy");}
+}
+function makeOffer(){
+  var pool=[];
+  openRoles(G.my).forEach(function(r){ byRole[r].forEach(function(c){ if(!G.taken[c[0]]) pool.push(c); }); });
+  for(var i=pool.length-1;i>0;i--){var j=Math.floor(R()*(i+1));var t=pool[i];pool[i]=pool[j];pool[j]=t;}
+  G.offer=pool.slice(0,3);
+}
+function renderBanGrid(){
+  champGrid(document.getElementById("draftGrid"),draftRole,draftQ,{
+    badges:false,
+    isOff:function(c){return !!G.taken[c[0]];},
+    onPick:function(c){doPlayer(c);}
+  });
+}
+function renderPickers(){
+  var offer=document.getElementById("offerWrap");
+  var classic=document.getElementById("classicWrap");
+  if(draftDone()){offer.style.display="none";classic.style.display="none";return;}
+  var a=cur();
+  if(a.who==="P"&&a.act==="ban"){
+    classic.style.display="block";offer.style.display="none";renderBanGrid();return;
+  }
+  classic.style.display="none";offer.style.display="block";
+  var cards=document.getElementById("offerCards");
+  var rb=document.getElementById("rerollBtn");
+  if(a.who==="P"){
+    document.getElementById("offerTitle").textContent="YOUR PICK \u00b7 CHOOSE ONE";
+    rb.style.display="inline-block";rb.disabled=G.rerolls<=0;
+    rb.textContent="Reroll ("+G.rerolls+" left)";
+    cards.innerHTML="";
+    G.offer.forEach(function(ch){
+      var d=document.createElement("div");d.className="ocard";
+      d.innerHTML='<div class="cpic">'+imgTag(ch)+'</div><b>'+ch[0]+'</b><span>'+ROLENL[ch[1]]+'</span>';
+      d.addEventListener("click",function(){doPlayer(ch);});
+      cards.appendChild(d);
+    });
+  } else {
+    document.getElementById("offerTitle").textContent="OPPONENT IS "+(a.act==="ban"?"BANNING":"PICKING")+"...";
+    cards.innerHTML="";rb.style.display="none";
+  }
+}
+function doPlayer(c){
+  var a=cur();
+  G.taken[c[0]]=true;
+  if(a.act==="ban"){snd("ban");G.myBans.push(c);}
+  else{snd("pick");G.my[c[1]]=c;}
+  G.idx++;advance();
+}
+function doEnemy(){
+  var a=cur();
+  var c=a.act==="ban"?aiBan():aiPick();
+  G.taken[c[0]]=true;
+  if(a.act==="ban")G.foeBans.push(c);else G.foe[c[1]]=c;
+  G.idx++;advance();
+}
+function advance(){
+  renderTeams();renderBans();setDraftMsg();
+  if(!draftDone()){
+    var a=cur();
+    if(a.who==="P"&&a.act==="pick")makeOffer();
+  }
+  renderPickers();
+  if(draftDone()){setTimeout(startItems,700);return;}
+  if(cur().who==="E"){setTimeout(doEnemy,700+R()*700);}
+}
+bindTabs(document.getElementById("scr-draft"),function(r){
+  draftRole=r;
+  if(G&&G.seq&&!draftDone()&&cur().who==="P"&&cur().act==="ban")renderBanGrid();
+});
+document.getElementById("draftSearch").addEventListener("input",function(e){
+  draftQ=e.target.value.toLowerCase();
+  if(G&&G.seq&&!draftDone()&&cur().who==="P"&&cur().act==="ban")renderBanGrid();
+});
+document.getElementById("rerollBtn").addEventListener("click",function(){
+  if(!G||G.rerolls<=0)return;
+  G.rerolls--;snd("reroll");makeOffer();renderPickers();
+});
+
+/* ================= ITEM PHASE ================= */
+function startItems(){
+  var meT=teamArr(G.my),foeT=teamArr(G.foe);
+  document.getElementById("peekName").textContent=G.foeName.toUpperCase()+" \u00b7 KNOW YOUR ENEMY";
+  var peek=document.getElementById("peekSlots");peek.innerHTML="";
+  foeT.forEach(function(c){
+    peek.innerHTML+='<div class="pslot filled"><div class="pic">'+imgTag(c)+'</div><div class="nm">'+c[0]+'</div></div>';
+  });
+  var list=document.getElementById("itemList");list.innerHTML="";
+  meT.forEach(function(c,i){
+    var opts=CLASSOPTS[classOf(c)];
+    var box=document.createElement("div");box.className="itemchamp";
+    box.innerHTML='<div class="head"><div class="pic">'+imgTag(c)+'</div><div class="who"><b>'+c[0]+'</b><span>'+ROLENL[ROLES[i]]+'</span></div></div>'+
+      '<div class="iopts">'+opts.map(function(id){
+        var it=ITEMDEFS[id];
+        return '<div class="iopt" data-slot="'+i+'" data-item="'+id+'"><b>'+it.n+'</b><span>'+it.d+'</span></div>';
+      }).join("")+'</div>';
+    list.appendChild(box);
+  });
+  list.querySelectorAll(".iopt").forEach(function(o){
+    o.addEventListener("click",function(){
+      snd("click");
+      var slot=+o.dataset.slot;
+      G.items[slot]=o.dataset.item;
+      o.parentElement.querySelectorAll(".iopt").forEach(function(x){x.classList.remove("sel");});
+      o.classList.add("sel");
+      document.getElementById("lockItems").disabled=G.items.some(function(x){return !x;});
+    });
+  });
+  G.items=[null,null,null,null,null];
+  document.getElementById("lockItems").disabled=true;
+  show("scr-items");
+}
+document.getElementById("lockItems").addEventListener("click",function(){snd("pick");startMatch();});
+
+/* ================= RIFT MAP ================= */
+var LANES={
+  top:[[10,90],[10,10],[90,10]],
+  mid:[[10,90],[90,10]],
+  bot:[[10,90],[90,90],[90,10]]
+};
+function laneLen(pts){var L=0;for(var i=1;i<pts.length;i++){L+=Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]);}return L;}
+function pointAt(pts,u){
+  var total=laneLen(pts), d=u*total;
+  for(var i=1;i<pts.length;i++){
+    var seg=Math.hypot(pts[i][0]-pts[i-1][0],pts[i][1]-pts[i-1][1]);
+    if(d<=seg){var k=seg?d/seg:0;return [pts[i-1][0]+(pts[i][0]-pts[i-1][0])*k, pts[i-1][1]+(pts[i][1]-pts[i-1][1])*k];}
+    d-=seg;
+  }
+  return pts[pts.length-1];
+}
+var mapState=null;
+function buildMap(){
+  var svg=document.getElementById("riftmap");
+  var lanePath=function(pts){return '<polyline points="'+pts.map(function(p){return p.join(",");}).join(" ")+'" fill="none" stroke="#24364f" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>';};
+  var turrets={blue:[[10,62],[10,34],[34,66],[52,48],[62,90],[90,66]],red:[[38,10],[66,10],[48,52],[66,34],[10,38]?[34,10]:[34,10],[90,38]]};
+  turrets={blue:[[10,62],[10,34],[34,66],[52,48],[62,90],[90,62]],red:[[38,10],[66,10],[48,52],[66,34],[90,38],[90,66]?[90,38]:[90,38]]};
+  turrets={blue:[[10,62],[10,34],[34,66],[52,48],[62,90],[88,78]],red:[[38,10],[66,10],[48,52],[66,34],[12,22],[90,38]]};
+  var t='<rect x="0" y="0" width="100" height="100" fill="#07101f"/>'+
+    '<path d="M0 76 L24 100 L100 24 L76 0 Z" fill="#0a2233"/>'+
+    lanePath(LANES.top)+lanePath(LANES.mid)+lanePath(LANES.bot);
+  ["blue","red"].forEach(function(side){
+    turrets[side].forEach(function(p,i){
+      t+='<rect class="tw" data-side="'+side+'" data-i="'+i+'" x="'+(p[0]-1.7)+'" y="'+(p[1]-1.7)+'" width="3.4" height="3.4" fill="'+(side==="blue"?"#0AC8B9":"#E84057")+'"/>';
+    });
+  });
+  t+='<circle id="nexusB" cx="10" cy="90" r="4.2" fill="#0AC8B9"/>'+
+     '<circle id="nexusR" cx="90" cy="10" r="4.2" fill="#E84057"/>'+
+     '<circle id="boom" cx="50" cy="50" r="0" fill="none" stroke="#F0E6D2" stroke-width="1.5" opacity="0"/>';
+  ["top","mid","bot"].forEach(function(l){
+    var p=pointAt(LANES[l],0.5);
+    t+='<circle class="pm" id="pm-'+l+'" cx="'+p[0]+'" cy="'+p[1]+'" r="2.4" fill="#F0E6D2" stroke="#C8AA6E" stroke-width="0.8"/>';
+  });
+  svg.innerHTML=t;
+  mapState={u:{top:.5,mid:.5,bot:.5},destroyed:{blue:0,red:0}};
+}
+function tweenMarkers(targets){
+  var reduce=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  var start={top:mapState.u.top,mid:mapState.u.mid,bot:mapState.u.bot};
+  var t0=performance.now(),dur=reduce?0:650;
+  function frame(now){
+    var k=dur?Math.min(1,(now-t0)/dur):1;
+    ["top","mid","bot"].forEach(function(l){
+      var u=start[l]+(targets[l]-start[l])*k;
+      var p=pointAt(LANES[l],u);
+      var el=document.getElementById("pm-"+l);
+      if(el){el.setAttribute("cx",p[0]);el.setAttribute("cy",p[1]);}
+    });
+    if(k<1)requestAnimationFrame(frame);
+    else mapState.u=targets;
+  }
+  requestAnimationFrame(frame);
+}
+function mapPhase(playerWon){
+  var d=playerWon?0.15:-0.15;
+  var targets={top:Math.min(.95,Math.max(.05,mapState.u.top+d)),
+               mid:Math.min(.95,Math.max(.05,mapState.u.mid+d)),
+               bot:Math.min(.95,Math.max(.05,mapState.u.bot+d))};
+  tweenMarkers(targets);
+  var side=playerWon?"red":"blue";
+  var tws=document.querySelectorAll('.tw[data-side="'+side+'"]');
+  var idx=mapState.destroyed[side];
+  if(tws[idx]){tws[idx].setAttribute("fill","#3a4a63");mapState.destroyed[side]++;}
+}
+function mapEnd(playerWon){
+  var nx=document.getElementById(playerWon?"nexusR":"nexusB");
+  var boom=document.getElementById("boom");
+  if(nx){
+    boom.setAttribute("cx",nx.getAttribute("cx"));
+    boom.setAttribute("cy",nx.getAttribute("cy"));
+    nx.setAttribute("fill","#3a4a63");
+    boom.setAttribute("opacity","1");
+    var r=0,t0=performance.now();
+    function fr(now){var k=Math.min(1,(now-t0)/700);boom.setAttribute("r",k*14);boom.setAttribute("opacity",String(1-k));if(k<1)requestAnimationFrame(fr);}
+    requestAnimationFrame(fr);
+  }
+}
+
+/* ================= MATCH ================= */
+var PHNL={early:"Early game",mid:"Mid game",late:"Late game"};
+var WINTXT=["Your support lands the engage of the night.","Perfect itemization, their damage just stopped working.","Baron steal at 20 HP.","Your carry free-hits for 8 full seconds thanks to the peel.","Flawless Elder fight."];
+var LOSETXT=["Their assassin one-shots your carry before the fight even starts.","Missed engage, your team follows anyway.","Outscaled. From minute 35 your comp was simply done.","Their support hooks your carry out of position.","Their items were just better picked."];
+var matchResult=null;
+function startMatch(){
+  var meT=teamArr(G.my),foeT=teamArr(G.foe);
+  var foeItems=aiItems(foeT,meT);
+  var myEv=evalTeam(meT,G.items,foeT);
+  var foeEv=evalTeam(foeT,foeItems,meT);
+  foeEv.total=Math.round(foeEv.total*(1+skillNow()*0.012));
+  var myP=phasePower(myEv,meT),foeP=phasePower(foeEv,foeT);
+  document.getElementById("matchFoe").textContent=G.foeName;
+  buildMap();
+  var mp=document.getElementById("matchPhases");
+  mp.innerHTML=["early","mid","late"].map(function(ph){
+    return '<div class="mphase"><div class="plabel"><span>'+PHNL[ph]+'</span><span id="pr-'+ph+'">...</span></div><div class="bar"><div class="m" id="bar-'+ph+'" style="width:50%"></div><div class="e"></div></div></div>';
+  }).join("");
+  document.getElementById("matchLog").innerHTML="";
+  document.getElementById("matchNext").innerHTML="";
+  show("scr-match");
+  var phases=["early","mid","late"],i=0,wins=0,phaseWins=[],phaseDetail=[];
+  function step(){
+    if(i>=phases.length){
+      var won=wins>=2;
+      mapEnd(won);
+      matchResult={won:won,myEv:myEv,foeEv:foeEv,foeItems:foeItems,meT:meT,foeT:foeT,phaseWins:phaseWins,phaseDetail:phaseDetail,side:G.side};
+      document.getElementById("matchNext").innerHTML='<button class="btn primary" id="toAnalysis">View analysis</button>';
+      document.getElementById("toAnalysis").addEventListener("click",showAnalysis);
+      return;
+    }
+    var ph=phases[i];
+    var m=myP[ph]*(0.88+R()*0.24), e=foeP[ph]*(0.88+R()*0.24);
+    var share=Math.round(100*m/(m+e));
+    document.getElementById("bar-"+ph).style.width=share+"%";
+    var w=m>=e;if(w)wins++;phaseWins.push(w);phaseDetail.push({ph:ph,mb:Math.round(myP[ph]),eb:Math.round(foeP[ph]),mr:Math.round(m),er:Math.round(e),won:w});
+    snd(w?"pwin":"plose");
+    mapPhase(w);
+    document.getElementById("pr-"+ph).innerHTML=w?'<span class="pos">won</span>':'<span class="neg">lost</span>';
+    var pool=w?WINTXT:LOSETXT;
+    document.getElementById("matchLog").innerHTML+='<div>'+PHNL[ph]+': '+pool[Math.floor(R()*pool.length)]+'</div>';
+    i++;setTimeout(step,1300);
+  }
+  setTimeout(step,500);
+}
+
+/* ================= ANALYSIS & SHARE ================= */
+function grade(p){return p>=4?["Strong","g-good"]:p>=2?["Decent","g-ok"]:["Weak","g-bad"];}
+function clamp01(x){return Math.max(0,Math.min(1,x));}
+function coachScore(ev){
+  var synPct=clamp01((ev.synT+18)/44);
+  var itemPct=clamp01(ev.itemT/25);
+  var ctrPct=clamp01(ev.ctrT/12);
+  var sc=Math.round(100*(0.40*synPct+0.45*itemPct+0.15*ctrPct));
+  var g=sc>=85?"S":sc>=70?"A":sc>=55?"B":sc>=40?"C":"D";
+  return {score:sc,grade:g};
+}
+function synHtml(rows){
+  return rows.map(function(x){
+    var cl=x[1]>=0?"pos":"neg";
+    return '<div class="aline"><span>'+x[0]+'</span><span class="'+cl+'">'+(x[1]>=0?"+":"")+x[1]+'</span></div>';
+  }).join("")||'<div class="aline"><span>No notable effects</span><span>0</span></div>';
+}
+function shareText(R0){
+  var head=MODE==="daily" ? "Rift Draft Arena daily "+todayStr() : "Rift Draft Arena ("+RANKS[ladder.ri]+" ladder)";
+  var sideTxt=R0.side==="B"?"Blue side":"Red side";
+  var sq=R0.phaseWins.map(function(w){return w?"\uD83D\uDFE6":"\uD83D\uDFE5";}).join(" ");
+  var cs=coachScore(R0.myEv);
+  return head+" ("+sideTxt+")\n"+(R0.won?"VICTORY":"DEFEAT")+" vs "+G.foeName+
+    "\nCoach score "+cs.score+"/100 (grade "+cs.grade+")"+
+    "\nEarly Mid Late: "+sq+
+    "\nSynergy "+(R0.myEv.synT>=0?"+":"")+R0.myEv.synT+", counters +"+R0.myEv.ctrT+", items "+R0.myEv.itemT+"/25";
+}
+function copyShare(R0,btn){
+  var txt=shareText(R0);
+  function done(){btn.textContent="Copied!";setTimeout(function(){btn.textContent="Copy result";},1500);}
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(done,function(){window.prompt("Copy your result:",txt);});}
+  else{window.prompt("Copy your result:",txt);}
+}
+function showAnalysis(){
+  var R0=matchResult;
+  snd(R0.won?"victory":"defeat");
+  var rb=document.getElementById("resultBanner");
+  var lpline="";
+  if(MODE==="ranked"){
+    var lp=applyLP(R0.won);
+    lpline='<div class="lp '+(R0.won?"pos":"neg")+'">'+(R0.won?"+25":"-20")+' LP'+
+      (lp.promo?' \u00b7 <span class="neutral">PROMOTED to '+RANKS[ladder.ri]+'</span>':"")+
+      (lp.demo?' \u00b7 <span class="neg">Demoted to '+RANKS[ladder.ri]+'</span>':"")+'</div>';
+  } else {
+    lpline='<div class="lp neutral">Daily challenge '+todayStr()+' \u00b7 everyone faces the same AI seed today, it reacts to your choices</div>';
+  }
+  var cs=coachScore(R0.myEv);
+  rb.innerHTML='<div class="resultbanner '+(R0.won?"win":"lose")+'"><h2>'+(R0.won?"VICTORY":"DEFEAT")+'</h2>'+lpline+
+    '<div class="lp neutral">Coach score '+cs.score+'/100 \u00b7 grade '+cs.grade+' (your synergy, counters and items, tier luck excluded)</div></div>';
+  var mx=Math.max(R0.myEv.total,R0.foeEv.total,1);
+  document.getElementById("powerCompare").innerHTML='<h3>TEAM POWER (hidden during the game)</h3>'+
+    '<div class="pbrow"><span class="who" style="color:var(--blue)">YOU</span><div class="track"><i style="width:'+Math.round(100*R0.myEv.total/mx)+'%;background:var(--blue)"></i></div><b>'+R0.myEv.total+'</b></div>'+
+    '<div class="pbrow"><span class="who" style="color:var(--red)">'+G.foeName.toUpperCase()+'</span><div class="track"><i style="width:'+Math.round(100*R0.foeEv.total/mx)+'%;background:var(--red)"></i></div><b>'+R0.foeEv.total+'</b></div>'+
+    '<p class="hint" style="margin-top:8px">Your breakdown: tiers '+Math.round(R0.myEv.base)+' \u00b7 synergy '+(R0.myEv.synT>=0?"+":"")+R0.myEv.synT+' \u00b7 counters +'+R0.myEv.ctrT+' \u00b7 items +'+R0.myEv.itemT+'</p>';
+  document.getElementById("myTiers").innerHTML=R0.meT.map(function(c){
+    return '<div class="champline"><div class="mini">'+imgTag(c)+'</div><span class="grow">'+c[0]+'</span><span class="tpill" style="background:'+TIERCOL[c[2]]+'">'+c[2]+'</span><span style="width:42px;text-align:right;color:var(--white)">'+TIERPTS[c[2]]+'</span></div>';
+  }).join("");
+  document.getElementById("mySyn").innerHTML=synHtml(R0.myEv.syn);
+  document.getElementById("myCtr").innerHTML=synHtml(R0.myEv.ctr);
+  document.getElementById("myItems").innerHTML=R0.myEv.items.map(function(row){
+    var g=grade(row.pts);
+    return '<div class="champline"><div class="mini">'+imgTag(row.champ)+'</div><div class="grow"><span style="color:var(--white)">'+row.item+'</span><br><span class="hint">'+row.why+'</span></div><span class="gpill '+g[1]+'">'+g[0]+' +'+row.pts+'</span></div>';
+  }).join("");
+  document.getElementById("foeSummary").innerHTML=R0.foeT.map(function(c,i){
+    return '<div class="champline"><div class="mini">'+imgTag(c)+'</div><span class="grow">'+c[0]+' <span class="hint">\u00b7 '+ITEMDEFS[R0.foeItems[i]].n+'</span></span><span class="tpill" style="background:'+TIERCOL[c[2]]+'">'+c[2]+'</span></div>';
+  }).join("")+'<div class="aline" style="margin-top:8px"><span>Enemy synergy plus counters</span><span>'+(R0.foeEv.synT+R0.foeEv.ctrT>=0?"+":"")+(R0.foeEv.synT+R0.foeEv.ctrT)+'</span></div>';
+  var fm=document.getElementById("mathPanel");
+  fm.innerHTML='<h3>THE MATH</h3>'+
+    '<p class="hint" style="margin-bottom:8px">Team power = tier points + synergy + counters + items. Phase power adds style modifiers: early champs and engage count extra in the early game, scalers in the late game, CC in the mid game. Each phase both teams roll 88 to 112 percent of their phase power, highest roll wins. Win 2 of 3 phases for the match. The AI gets a ladder handicap of times (1 + 0.012 per rank).</p>'+
+    '<div class="aline"><span style="color:var(--gold-bright)">Your totals</span><span>tiers '+Math.round(R0.myEv.base)+' / syn '+(R0.myEv.synT>=0?"+":"")+R0.myEv.synT+' / ctr +'+R0.myEv.ctrT+' / items +'+R0.myEv.itemT+' = '+R0.myEv.total+'</span></div>'+
+    '<div class="aline"><span style="color:var(--gold-bright)">Enemy totals</span><span>tiers '+Math.round(R0.foeEv.base)+' / syn '+(R0.foeEv.synT>=0?"+":"")+R0.foeEv.synT+' / ctr +'+R0.foeEv.ctrT+' / items +'+R0.foeEv.itemT+' = '+R0.foeEv.total+' (after handicap)</span></div>'+
+    '<div style="margin-top:10px;font-size:13px;color:var(--gold)">PHASE ROLLS</div>'+
+    R0.phaseDetail.map(function(p){
+      var nm=p.ph==="early"?"Early":p.ph==="mid"?"Mid":"Late";
+      return '<div class="aline"><span>'+nm+': you '+p.mb+' rolled <b style="color:var(--white)">'+p.mr+'</b>, enemy '+p.eb+' rolled <b style="color:var(--white)">'+p.er+'</b></span><span class="'+(p.won?"pos":"neg")+'">'+(p.won?"won":"lost")+'</span></div>';
+    }).join("")+
+    '<div style="margin-top:10px;font-size:13px;color:var(--gold)">ENEMY BREAKDOWN</div>'+
+    synHtml(R0.foeEv.syn)+synHtml(R0.foeEv.ctr)+
+    R0.foeEv.items.map(function(row){
+      var g=grade(row.pts);
+      return '<div class="aline"><span>'+row.champ[0]+': '+row.item+'</span><span class="'+(row.pts>=4?"pos":row.pts>=2?"neutral":"neg")+'">+'+row.pts+'</span></div>';
+    }).join("");
+  var btns=document.getElementById("analysisBtns");
+  btns.innerHTML='<button class="btn" id="shareBtn">Copy result</button> '+
+    (MODE==="ranked"?'<button class="btn primary" id="nextGame">Next game</button> ':"")+
+    '<button class="btn ghost" id="toMenu">Menu</button>';
+  document.getElementById("shareBtn").addEventListener("click",function(){copyShare(R0,this);});
+  if(MODE==="ranked")document.getElementById("nextGame").addEventListener("click",function(){requestGame("ranked");});
+  document.getElementById("toMenu").addEventListener("click",function(){show("scr-menu");});
+  show("scr-analysis");
+}
+document.getElementById("closeOverlay").addEventListener("click",function(){document.getElementById("champOverlay").classList.remove("show");});
+
+/* ================= START ================= */
+var pendingMode="ranked";
+function requestGame(mode){
+  pendingMode=mode;snd("click");
+  document.getElementById("sideOverlay").classList.add("show");
+}
+function launch(side){
+  document.getElementById("sideOverlay").classList.remove("show");
+  MODE=pendingMode;
+  R = MODE==="daily" ? mulberry32(todaySeed()) : Math.random;
+  newGame();
+  G.side=side;buildSeq();
+  draftRole="ALL";draftQ="";document.getElementById("draftSearch").value="";
+  document.getElementById("foeName").textContent=G.foeName.toUpperCase();
+  show("scr-draft");advance();
+}
+document.getElementById("startGame").addEventListener("click",function(){requestGame("ranked");});
+document.getElementById("startDaily").addEventListener("click",function(){requestGame("daily");});
+document.getElementById("sideBlue").addEventListener("click",function(){snd("pick");launch("B");});
+document.getElementById("sideRed").addEventListener("click",function(){snd("pick");launch("R");});
+document.getElementById("sideClose").addEventListener("click",function(){document.getElementById("sideOverlay").classList.remove("show");});
+renderRank();
+

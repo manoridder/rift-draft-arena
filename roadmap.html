@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rift Draft Arena: Roadmap</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#010A13;--panel:#0A1428;--panel2:#060D18;--line:#1E2D45;
+  --gold:#C8AA6E;--gold-bright:#F0E6D2;--gold-dim:#785A28;
+  --blue:#0AC8B9;--red:#E84057;--purple:#9c7bd6;--text:#94A1B5;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',system-ui,sans-serif;background:
+  radial-gradient(1100px 540px at 50% -8%, rgba(10,110,140,.18), rgba(1,10,19,0) 60%),var(--bg);
+  color:#C4CEDC;font-size:14px;line-height:1.55;min-height:100vh;padding-bottom:60px}
+body::before{content:"";position:fixed;inset:0;pointer-events:none;
+  background:url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="56" height="64" viewBox="0 0 56 64"><path d="M28 2 52 16v32L28 62 4 48V16Z" fill="none" stroke="%23C8AA6E" stroke-opacity="0.045"/></svg>') repeat}
+.wrap{max-width:1180px;margin:0 auto;padding:26px 16px;position:relative}
+h1{font-family:'Cinzel',serif;color:var(--gold-bright);font-size:26px;text-align:center}
+.sub{text-align:center;color:var(--text);margin:6px 0 4px;font-size:13px}
+.progress{max-width:420px;margin:14px auto 4px;text-align:center}
+.pbar{height:10px;background:var(--panel2);border:1px solid var(--gold-dim);clip-path:polygon(5px 0,100% 0,calc(100% - 5px) 100%,0 100%)}
+.pbar i{display:block;height:100%;background:linear-gradient(90deg,#785A28,#C8AA6E,#F0E6D2);transition:width .4s}
+.pct{font-family:'Cinzel',serif;color:var(--gold);font-size:12px;margin-top:6px;letter-spacing:.08em}
+.toolbar{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:16px 0 22px}
+.btn{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+  background:linear-gradient(180deg,#10243c,#0a1626);border:1px solid var(--gold-dim);color:#CDBE91;
+  padding:9px 18px;cursor:pointer;transition:all .15s}
+.btn:hover{border-color:var(--gold);color:var(--gold-bright);box-shadow:0 0 12px rgba(200,170,110,.3)}
+.btn.ghost{background:linear-gradient(180deg,#0b1626,#070f1c);border-color:var(--line);color:var(--text)}
+.btn.ghost:hover{border-color:var(--gold-dim);color:var(--gold-bright)}
+.btn.tiny{padding:4px 9px;font-size:10px;letter-spacing:.06em}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;align-items:start}
+.col{background:rgba(6,13,24,.5);border:1px solid rgba(30,45,69,.6);padding:10px;min-height:140px;transition:outline .1s;outline:1px dashed transparent}
+.col.dragover{outline:1px dashed var(--gold);background:rgba(200,170,110,.04)}
+.col h2{font-family:'Cinzel',serif;font-size:12.5px;letter-spacing:.12em;margin:4px 2px 10px;display:flex;align-items:center;gap:8px}
+.col h2::before{content:"";width:6px;height:6px;transform:rotate(45deg);background:currentColor;flex:none}
+.col[data-s="done"] h2{color:var(--blue)} .col[data-s="next"] h2{color:var(--gold)}
+.col[data-s="plan"] h2{color:var(--purple)} .col[data-s="idea"] h2{color:var(--text)}
+.addbtn{width:100%;margin-top:4px;background:none;border:1px dashed var(--line);color:var(--text);
+  font-family:'Cinzel',serif;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;padding:8px;cursor:pointer}
+.addbtn:hover{border-color:var(--gold-dim);color:var(--gold-bright)}
+.card{background:linear-gradient(180deg,#0c1a30,#081220);border:1px solid var(--line);padding:11px 12px 9px;margin-bottom:10px;position:relative;transition:border-color .15s,opacity .15s}
+.card:hover{border-color:var(--gold)}
+.card.dragging{opacity:.4}
+.card::before{content:"";position:absolute;top:-1px;left:-1px;width:10px;height:10px;border-top:2px solid var(--gold);border-left:2px solid var(--gold);pointer-events:none}
+.card::after{content:"";position:absolute;bottom:-1px;right:-1px;width:10px;height:10px;border-bottom:2px solid var(--gold);border-right:2px solid var(--gold);pointer-events:none}
+.card b.title{color:var(--gold-bright);font-weight:600;font-size:13.5px;display:block;padding-right:56px;cursor:pointer}
+.pill{position:absolute;top:9px;right:9px;font-family:'Cinzel',serif;font-size:9px;letter-spacing:.08em;padding:2px 7px;border:1px solid}
+.p-done{color:var(--blue);border-color:var(--blue)}
+.p-next{color:var(--gold);border-color:var(--gold-dim)}
+.p-plan{color:var(--purple);border-color:#5a4486}
+.p-idea{color:var(--text);border-color:var(--line)}
+.det{display:none;margin-top:8px;font-size:12.5px;color:var(--text);border-top:1px solid var(--line);padding-top:8px}
+.card.open .det{display:block}
+.det .src{color:#7f8ba0;font-style:italic;display:block;margin-bottom:6px}
+.cbtns{display:flex;gap:5px;margin-top:9px;flex-wrap:wrap}
+.cbtns .btn{padding:3px 8px;font-size:9.5px;letter-spacing:.05em}
+.cbtns .spacer{flex:1}
+.editform label{display:block;font-family:'Cinzel',serif;font-size:10px;letter-spacing:.08em;color:var(--gold);margin:8px 0 3px;text-transform:uppercase}
+.editform input,.editform textarea{width:100%;background:var(--panel2);border:1px solid var(--line);color:#E8EDF5;
+  font-family:'Inter',sans-serif;font-size:13px;padding:7px 9px}
+.editform input:focus,.editform textarea:focus{outline:none;border-color:var(--blue)}
+.editform textarea{resize:vertical;min-height:54px}
+.hint{text-align:center;color:#5a6478;font-size:11.5px;margin-top:10px}
+.foot{text-align:center;color:#5a6478;font-size:11.5px;margin-top:30px}
+input[type=file]{display:none}
+@media(prefers-reduced-motion:reduce){.pbar i{transition:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>RIFT DRAFT ARENA: ROADMAP</h1>
+  <p class="sub">Drag cards between columns, click a title to expand, edit anything. Save downloads a file, Load restores it.</p>
+  <div class="progress"><div class="pbar"><i id="pfill"></i></div><div class="pct" id="ptxt"></div></div>
+  <div class="toolbar">
+    <button class="btn" id="saveBtn">Save to file</button>
+    <button class="btn ghost" id="loadBtn">Load from file</button>
+    <button class="btn ghost" id="resetBtn">Reset to defaults</button>
+    <input type="file" id="loadInput" accept="application/json,.json">
+  </div>
+  <div class="cols" id="board"></div>
+  <p class="hint">Changes live in this tab until you hit Save. Keep roadmap-data.json next to this file and Load it when you come back.</p>
+  <p class="foot">Rift Draft Arena was created under Riot Games' "Legal Jibber Jabber" policy using assets owned by Riot Games. Riot Games does not endorse or sponsor this project.</p>
+</div>
+<script>
+"use strict";
+var DEFAULTS=[
+ {s:"done",t:"Side select plus pro draft order",n:"Choose blue or red side, one or two picks at once like championship drafting.",d:"Blue or Red choice before every game. Full tournament sequence: B-R alternating bans (3 each), picks B, RR, BB, R, second ban round R-B-R-B (2 each), then picks R, BB, R. Blue always opens, Red always closes."},
+ {s:"done",t:"Interleaved double ban phases",n:"Ban phase intertwined with drafting, second ban phase of 2 each, like pro play.",d:"Both ban rounds sit inside the draft flow on one screen, with live ban rows for both teams. Your bans use the full searchable grid, your picks use the 3-option arena offers."},
+ {s:"done",t:"Outcome math fully visible",n:"How do I calc the outcome? Show more detail on how the AI scored so losing makes sense.",d:"The Math panel in every post game: the full formula, your totals and the enemy totals side by side (tiers, synergy, counters, items), the enemy item verdicts, and the exact phase rolls (you 78 rolled 81, enemy 74 rolled 70). Your nerd friend can recalculate every result."},
+ {s:"done",t:"Tiers compressed, choices matter more",n:"It feels like the tier list matters more than strategic picking. Maybe tiers should be less relevant.",d:"Tier points went from a 6.5 point spread per champ to 4 (S=9 down to D=5). Max tier gap between teams is now 20 points while synergy, counters and items can swing over 60. First step, more rebalance lands with the Phase 2 scoring rework."},
+ {s:"done",t:"Coach score in the share text",n:"Power 61 vs 83, items 15/25. But what does that say about how good you do?",d:"Share and result banner now lead with a Coach score (0 to 100, plus a letter grade) computed only from what you control: 45 percent items, 40 percent synergy, 15 percent counters. Tier luck excluded. Side and phase squares included."},
+ {s:"done",t:"SR-only data, wrong items fixed",n:"Opportunity is Arena only, Trinity was not buffed on SR, Locke is not in the game.",d:"Verified against the official 26.12 notes: every item change that patch sits under the Arena header, zero SR item changes. Game corrected: Opportunity replaced by Youmuu's Ghostblade, all false buffed-in-26.12 labels removed, 26.11 SR support item labels kept, Locke removed from the pool, real 26.12 SR champion notes added (Aatrox to Yuumi)."},
+ {s:"done",t:"Arena offers standard, daily, easter egg, audio",n:"Earlier feedback rolled in.",d:"3 random options with 2 rerolls is simply how drafting works now. Daily challenge with shared AI seed. Hextech chest easter egg with Hextech Heist. Warriors Of The Flame as soundtrack, volume sliders, League style UI pass."},
+ {s:"next",t:"Item overhaul: 6 items, distribute freely",n:"6 items total, max 2 per champion, distribute strategically to the champs that matter most for the comp.",d:"Item budget of 6 across the team, hard cap 2 per champion. Stacking your win condition becomes a real decision. Item pool rebuilt from verified Summoner's Rift data, each entry with a patch reference so nothing stale slips in again."},
+ {s:"next",t:"Comp identity system",n:"Choose how the team plays: protect the carry, skirmish, teamfight, scaling, early game, objectives. Less synergy punishment when that was the plan.",d:"Declare your game plan at draft start. Synergy is then scored against that plan, not one universal mold: a poke comp without frontline is fine, a declared frontline comp without tanks gets punished extra hard, nailing your plan pays out extra. This replaces the current one-size-fits-all synergy table."},
+ {s:"next",t:"Strategic value scoring",n:"Score points not just on tier list champs but on strategic value. How do we determine this?",d:"With identities and the 6-item budget in place: plan fit, item allocation quality and counter play become the main score drivers, tier points become the floor, not the ceiling. Balance verified by simulation before shipping, same as the draft engine."},
+ {s:"next",t:"Data pipeline and patch updates",n:"How do I keep items, champs, buffs and nerfs up to date?",d:"Step one shipped: the SR item importer (sr-item-importer.html) pulls live Data Dragon data, filters map 11 (Classic Summoner's Rift), and exports sr-items.json with stats per item. Next: the game consumes that JSON as its item pool with a visible version label, the champion roster autoloads from ddragon, and each patch we walk the official notes (SR sections only) together for tiers and notes."},
+ {s:"plan",t:"Phase 3: longer, tenser matches",n:"The fighting part is really short, the dots get pushed back fast, you see it is cooked early and then you are bored.",d:"Match restructured into more beats: lane phase, first objective, mid game skirmish, Baron, final fight. Smaller map pushes per beat, comeback shutdown mechanics so a lost early game stays winnable, running gold lead bar instead of an instant verdict, pacing with actual suspense."},
+ {s:"plan",t:"Phase 4: PvP, local first",n:"A mode where both people pick teams and fight it out. Local play first, then explore online. No clue how to code that safely hahaha.",d:"Hotseat first: drafts are public in real League anyway, so alternating turns on one device works naturally, item phase taken in turns. Online step two: correspondence codes (exchange a compact state string per turn, deterministic sim resolves identically on both ends, zero server). Step three optional: a tiny WebSocket relay (about 30 lines of Node) that only forwards schema-validated draft messages, no accounts, no storage."},
+ {s:"idea",t:"Tiers even less relevant",n:"This is something to explore.",d:"After Phase 2 lands, run the sims again and test variants where tiers only break ties. If knowledge-based play stays rewarding without them dominating, push further."},
+ {s:"idea",t:"Coach training angle",n:"If this works well maybe coaches can finally learn how to draft properly.",d:"The math panel plus comp identities is basically a draft trainer already. Possible later: scenario mode (here is the enemy comp, fix the draft), and exportable post game reports. Worth revisiting once Phase 2 proves out, also interesting for your own training work."},
+ {s:"idea",t:"Daily leaderboard",n:"Follow-up on the viral angle.",d:"Coach scores on the daily are comparable. A shared leaderboard needs a tiny backend, so this rides along with the Phase 4 online work if that happens."}
+];
+var COLS=[["done","Live in the current build"],["next","Phase 2: building next"],["plan","Phase 3 and 4: planned"],["idea","Exploring"]];
+var ORDER=["done","next","plan","idea"];
+var PILLS={done:["LIVE","p-done"],next:["NEXT","p-next"],plan:["PLANNED","p-plan"],idea:["IDEA","p-idea"]};
+var state={items:[]}, editingId=null, draggingId=null, openIds={}, idSeq=1;
+
+function freshDefaults(){
+  return DEFAULTS.map(function(x){return {id:"c"+(idSeq++),s:x.s,t:x.t,n:x.n,d:x.d};});
+}
+function esc(s){
+  return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+}
+function byCol(s){return state.items.filter(function(i){return i.s===s;});}
+
+function render(){
+  var board=document.getElementById("board");
+  board.innerHTML="";
+  COLS.forEach(function(c){
+    var col=document.createElement("div");
+    col.className="col";col.dataset.s=c[0];
+    col.innerHTML="<h2>"+c[1]+"</h2>";
+    byCol(c[0]).forEach(function(item){ col.appendChild(makeCard(item)); });
+    var add=document.createElement("button");
+    add.className="addbtn";add.textContent="+ Add card";
+    add.addEventListener("click",function(){
+      var it={id:"c"+(idSeq++),s:c[0],t:"New card",n:"",d:""};
+      state.items.push(it);editingId=it.id;render();
+    });
+    col.appendChild(add);
+    col.addEventListener("dragover",function(e){e.preventDefault();col.classList.add("dragover");});
+    col.addEventListener("dragleave",function(){col.classList.remove("dragover");});
+    col.addEventListener("drop",function(e){
+      e.preventDefault();col.classList.remove("dragover");
+      dropMove(c[0],null);
+    });
+    board.appendChild(col);
+  });
+  var done=byCol("done").length;
+  document.getElementById("pfill").style.width=(state.items.length?Math.round(100*done/state.items.length):0)+"%";
+  document.getElementById("ptxt").textContent=done+" of "+state.items.length+" shipped";
+}
+
+function makeCard(item){
+  var d=document.createElement("div");
+  d.className="card"+(openIds[item.id]?" open":"");
+  if(editingId===item.id){ d.appendChild(editForm(item)); return d; }
+  d.draggable=true;
+  var p=PILLS[item.s];
+  d.innerHTML='<span class="pill '+p[1]+'">'+p[0]+'</span>'+
+    '<b class="title">'+esc(item.t)+'</b>'+
+    '<div class="det">'+(item.n?'<span class="src">Note: "'+esc(item.n)+'"</span>':'')+esc(item.d)+'</div>';
+  var btns=document.createElement("div");btns.className="cbtns";
+  btns.innerHTML='<button class="btn ghost" data-a="left">&#9664;</button>'+
+    '<button class="btn ghost" data-a="right">&#9654;</button>'+
+    '<span class="spacer"></span>'+
+    '<button class="btn ghost" data-a="edit">Edit</button>'+
+    '<button class="btn ghost" data-a="del">Del</button>';
+  d.appendChild(btns);
+  d.querySelector(".title").addEventListener("click",function(){
+    openIds[item.id]=!openIds[item.id];render();
+  });
+  btns.addEventListener("click",function(e){
+    var a=e.target.dataset&&e.target.dataset.a;
+    if(!a)return;
+    e.stopPropagation();
+    if(a==="edit"){editingId=item.id;render();}
+    else if(a==="del"){
+      if(confirm('Delete "'+item.t+'"?')){
+        state.items=state.items.filter(function(x){return x.id!==item.id;});render();
+      }
+    }
+    else{
+      var idx=ORDER.indexOf(item.s)+(a==="left"?-1:1);
+      if(idx>=0&&idx<ORDER.length){item.s=ORDER[idx];render();}
+    }
+  });
+  d.addEventListener("dragstart",function(e){
+    draggingId=item.id;d.classList.add("dragging");
+    e.dataTransfer.setData("text/plain",item.id);
+    e.dataTransfer.effectAllowed="move";
+  });
+  d.addEventListener("dragend",function(){draggingId=null;d.classList.remove("dragging");render();});
+  d.addEventListener("dragover",function(e){e.preventDefault();e.stopPropagation();});
+  d.addEventListener("drop",function(e){
+    e.preventDefault();e.stopPropagation();
+    dropMove(item.s,item.id);
+  });
+  return d;
+}
+
+function dropMove(targetStatus,beforeId){
+  if(!draggingId)return;
+  var i=state.items.findIndex(function(x){return x.id===draggingId;});
+  if(i<0)return;
+  var it=state.items.splice(i,1)[0];
+  it.s=targetStatus;
+  if(beforeId&&beforeId!==it.id){
+    var j=state.items.findIndex(function(x){return x.id===beforeId;});
+    state.items.splice(j<0?state.items.length:j,0,it);
+  } else {
+    state.items.push(it);
+  }
+  draggingId=null;render();
+}
+
+function editForm(item){
+  var f=document.createElement("div");f.className="editform";
+  f.innerHTML='<label>Title</label><input id="ef_t" value="'+esc(item.t)+'">'+
+    '<label>Your note (shown in italics)</label><textarea id="ef_n">'+esc(item.n)+'</textarea>'+
+    '<label>Plan / details</label><textarea id="ef_d">'+esc(item.d)+'</textarea>';
+  var btns=document.createElement("div");btns.className="cbtns";
+  btns.innerHTML='<button class="btn" data-a="save">Save</button><button class="btn ghost" data-a="cancel">Cancel</button>';
+  btns.addEventListener("click",function(e){
+    var a=e.target.dataset&&e.target.dataset.a;
+    if(!a)return;
+    if(a==="save"){
+      item.t=f.querySelector("#ef_t").value.trim()||"Untitled";
+      item.n=f.querySelector("#ef_n").value.trim();
+      item.d=f.querySelector("#ef_d").value.trim();
+    }
+    editingId=null;render();
+  });
+  f.appendChild(btns);
+  return f;
+}
+
+document.getElementById("saveBtn").addEventListener("click",function(){
+  var out={v:1,app:"rift-draft-arena-roadmap",savedAt:new Date().toISOString(),items:state.items};
+  var blob=new Blob([JSON.stringify(out,null,2)],{type:"application/json"});
+  var a=document.createElement("a");
+  a.href=URL.createObjectURL(blob);
+  a.download="roadmap-data.json";
+  document.body.appendChild(a);a.click();a.remove();
+  setTimeout(function(){URL.revokeObjectURL(a.href);},2000);
+});
+document.getElementById("loadBtn").addEventListener("click",function(){
+  document.getElementById("loadInput").click();
+});
+document.getElementById("loadInput").addEventListener("change",function(e){
+  var file=e.target.files&&e.target.files[0];
+  if(!file)return;
+  var r=new FileReader();
+  r.onload=function(){
+    try{
+      var data=JSON.parse(r.result);
+      if(!data||!Array.isArray(data.items))throw new Error("no items array");
+      var ok=data.items.every(function(x){return x&&typeof x.t==="string"&&ORDER.indexOf(x.s)>=0;});
+      if(!ok)throw new Error("bad item shape");
+      data.items.forEach(function(x){ if(!x.id)x.id="c"+(idSeq++); });
+      state.items=data.items;editingId=null;openIds={};render();
+    }catch(err){
+      alert("Could not load that file: "+err.message);
+    }
+  };
+  r.readAsText(file);
+  e.target.value="";
+});
+document.getElementById("resetBtn").addEventListener("click",function(){
+  if(confirm("Reset the board to the built-in defaults? Unsaved changes are lost.")){
+    state.items=freshDefaults();editingId=null;openIds={};render();
+  }
+});
+
+state.items=freshDefaults();
+render();
+</script>
+</body>
+</html>

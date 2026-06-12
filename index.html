@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rift Draft Arena</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://ddragon.leagueoflegends.com">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo" id="homebtn">RIFT DRAFT ARENA</div>
+  <div class="rankwrap">
+    <button class="btn ghost small" id="musBtn">Music: off</button>
+    <button class="btn ghost small" id="sndBtn">Effects: on</button>
+    <button class="btn ghost small" id="audioBtn">Audio</button>
+    <span class="rank" id="rankTxt">Iron &middot; 0 LP</span>
+    <div class="lpbar"><div class="fill" id="lpFill" style="width:0%"></div></div>
+  </div>
+</div>
+<audio id="bgm" loop preload="auto" src="audio/warriors-of-the-flame.mp3"></audio>
+<audio id="eggTrack" preload="auto" src="audio/hextech-heist.mp3"></audio>
+
+<div class="wrap">
+
+<!-- MENU -->
+<section id="scr-menu" class="screen active">
+  <div class="menuhero">
+    <h1>RIFT <span>DRAFT</span> ARENA</h1>
+    <p>Ban, draft and itemize against an AI coach that drafts back. No tier lists or scores while you play. Your game knowledge is the weapon. After every match you get the full analyst report and climb from Iron to Challenger.</p>
+    <div class="menubtns">
+      <button class="btn primary" id="startGame">Play ranked</button>
+      <button class="btn primary" id="startDaily">Daily challenge</button>
+      <button class="btn" id="openCodex">Tier list and patch notes</button>
+      <button class="btn ghost" id="howBtn">How it works</button>
+      <button id="eggDock" aria-label="A small forgotten chest">
+        <svg viewBox="0 0 120 100" aria-hidden="true">
+          <g><path d="M22 42 L32 16 H88 L98 42 Z" fill="#0d1f36" stroke="#C8AA6E" stroke-width="4"/></g>
+          <rect x="20" y="42" width="80" height="44" rx="3" fill="#0b1a2e" stroke="#C8AA6E" stroke-width="4"/>
+          <polygon class="gem" points="60,48 71,59 60,70 49,59" fill="#0AC8B9"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+  </section>
+
+<!-- CODEX -->
+<section id="scr-codex" class="screen">
+  <div class="phasehead"><h2>Tier list &middot; patch 26.12</h2><button class="btn ghost" id="codexBack">Back</button></div>
+  <p class="hint" style="margin-bottom:6px">Click a champion for tags and recent patch notes. You will not see tiers during the draft itself.</p>
+  <div class="controls">
+    <button class="tab on" data-role="ALL">All</button>
+    <button class="tab" data-role="TOP">Top</button>
+    <button class="tab" data-role="JGL">Jungle</button>
+    <button class="tab" data-role="MID">Mid</button>
+    <button class="tab" data-role="ADC">ADC</button>
+    <button class="tab" data-role="SUP">Support</button>
+    <input class="search" id="codexSearch" type="search" placeholder="Search champion..." aria-label="Search champion">
+  </div>
+  <div id="codexGrid"></div>
+</section>
+
+<!-- DRAFT -->
+<section id="scr-draft" class="screen">
+  <div class="phasehead"><h2 id="draftPhaseTitle">Draft</h2><div class="turnmsg" id="draftMsg"></div></div>
+  <div class="banrow"><span class="lbl" style="color:var(--blue)">Your bans</span><div id="myBans" style="display:flex;gap:6px"></div>
+  <span class="lbl" style="color:var(--red);margin-left:18px">Their bans</span><div id="foeBans" style="display:flex;gap:6px"></div></div>
+  <div class="sides">
+    <div class="side me"><h3>YOUR TEAM</h3><div class="slotrow" id="mySlots"></div></div>
+    <div class="side foe"><h3 id="foeName">OPPONENT</h3><div class="slotrow" id="foeSlots"></div></div>
+  </div>
+  <div id="offerWrap" class="offer" style="display:none">
+    <h3 id="offerTitle">YOUR PICK &middot; CHOOSE ONE</h3>
+    <div class="offercards" id="offerCards"></div>
+    <div style="margin-top:12px"><button class="btn small" id="rerollBtn">Reroll (2 left)</button></div>
+  </div>
+  <div id="classicWrap">
+    <div class="controls">
+      <button class="tab on" data-role="ALL">All</button>
+      <button class="tab" data-role="TOP">Top</button>
+      <button class="tab" data-role="JGL">Jungle</button>
+      <button class="tab" data-role="MID">Mid</button>
+      <button class="tab" data-role="ADC">ADC</button>
+      <button class="tab" data-role="SUP">Support</button>
+      <input class="search" id="draftSearch" type="search" placeholder="Search champion..." aria-label="Search champion">
+    </div>
+    <div id="draftGrid"></div>
+  </div>
+</section>
+
+<!-- ITEMS -->
+<section id="scr-items" class="screen">
+  <div class="phasehead"><h2>Item phase</h2><div class="turnmsg">Pick the right item for each champion against this comp</div></div>
+  <div class="enemypeek"><h3 id="peekName">ENEMY COMP</h3><div class="slotrow" id="peekSlots"></div></div>
+  <div id="itemList"></div>
+  <div class="center"><button class="btn primary" id="lockItems" disabled>Lock in and play</button></div>
+</section>
+
+<!-- MATCH -->
+<section id="scr-match" class="screen">
+  <div class="vsrow"><span class="tname me">Your team</span><span class="vs">VS</span><span class="tname foe" id="matchFoe"></span></div>
+  <div class="mapwrap"><svg id="riftmap" viewBox="0 0 100 100" role="img" aria-label="Animated map of the match"></svg></div>
+  <div id="matchPhases"></div>
+  <div class="mlog" id="matchLog"></div>
+  <div class="center" id="matchNext"></div>
+</section>
+
+<!-- ANALYSIS -->
+<section id="scr-analysis" class="screen">
+  <div id="resultBanner"></div>
+  <div class="powerbars panel" id="powerCompare"></div>
+  <div class="panel" id="mathPanel"></div>
+  <div class="cols">
+    <div>
+      <div class="panel"><h3>YOUR TEAM &middot; TIERS</h3><div id="myTiers"></div></div>
+      <div class="panel"><h3>YOUR SYNERGY</h3><div id="mySyn"></div></div>
+      <div class="panel"><h3>MATCHUP COUNTERS</h3><div id="myCtr"></div></div>
+    </div>
+    <div>
+      <div class="panel"><h3>YOUR ITEMS &middot; VERDICT</h3><div id="myItems"></div></div>
+      <div class="panel"><h3>OPPONENT</h3><div id="foeSummary"></div></div>
+    </div>
+  </div>
+  <div class="center" id="analysisBtns"></div>
+</section>
+
+</div>
+
+<footer>
+Rift Draft Arena was created under Riot Games' "Legal Jibber Jabber" policy using assets owned by Riot Games. Riot Games does not endorse or sponsor this project. Champion images via Riot Data Dragon and CommunityDragon.
+</footer>
+
+<div class="overlay" id="sideOverlay"><div class="obox" style="max-width:430px">
+  <h2 style="font-size:20px">Choose your side</h2>
+  <p class="hint" style="margin:6px 0 16px">Blue side opens the draft with first pick. Red side answers everything and gets the very last pick.</p>
+  <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+    <button class="btn" id="sideBlue" style="border-color:var(--blue);color:var(--blue)">Blue side</button>
+    <button class="btn" id="sideRed" style="border-color:var(--red);color:var(--red)">Red side</button>
+  </div>
+  <div class="center"><button class="btn ghost small" id="sideClose">Cancel</button></div>
+</div></div>
+
+<div class="overlay" id="howOverlay"><div class="obox" style="max-width:640px;text-align:left">
+  <h2 style="font-size:18px;text-align:center;margin-bottom:14px">How it works</h2>
+  <div class="howgrid" style="margin:0;max-width:none">
+    <div class="how"><h3>1 &middot; Ban phase</h3><p>You ban 3 champions, your opponent bans 3 back. Remove what counters your plan, or simply what you hate playing against.</p></div>
+    <div class="how"><h3>2 &middot; Draft</h3><p>Alternating picks like a real lobby. Every pick offers 3 random champions and you get 2 rerolls for the whole draft. Work with what the Rift gives you.</p></div>
+    <div class="how"><h3>3 &middot; Items</h3><p>Pick one item per champion based on the enemy comp. Anti-heal into healers, magic resist into AP, shield-cutting into enchanters.</p></div>
+    <div class="how"><h3>4 &middot; Analysis</h3><p>Only after the match do you see tiers, synergy, counters and item verdicts. Copy your result and challenge your friends on the same daily seed.</p></div>
+  </div>
+  <div class="center"><button class="btn ghost small" id="howClose">Close</button></div>
+</div></div>
+
+<div class="overlay" id="eggOverlay"><div class="obox" style="max-width:380px">
+  <div class="chestwrap" style="margin:0 auto">
+    <div class="chestbox" id="chestBox" role="button" tabindex="0" aria-label="Hextech chest">
+      <svg viewBox="0 0 120 100" aria-hidden="true" style="width:140px">
+        <ellipse cx="60" cy="92" rx="40" ry="5" fill="#000" opacity="0.45"/>
+        <g id="chestRays">
+          <line x1="60" y1="40" x2="60" y2="14" stroke="#0AC8B9" stroke-width="2"/>
+          <line x1="44" y1="42" x2="32" y2="22" stroke="#0AC8B9" stroke-width="2"/>
+          <line x1="76" y1="42" x2="88" y2="22" stroke="#0AC8B9" stroke-width="2"/>
+        </g>
+        <g id="chestLid">
+          <path d="M22 42 L32 16 H88 L98 42 Z" fill="#0d1f36" stroke="#C8AA6E" stroke-width="2"/>
+          <path d="M30 38 L37 21 H83 L90 38 Z" fill="none" stroke="#785A28" stroke-width="1.4"/>
+          <rect x="56" y="16" width="8" height="26" fill="#785A28"/>
+        </g>
+        <rect x="20" y="42" width="80" height="44" rx="3" fill="#0b1a2e" stroke="#C8AA6E" stroke-width="2"/>
+        <rect x="40" y="42" width="6" height="44" fill="#785A28"/>
+        <rect x="74" y="42" width="6" height="44" fill="#785A28"/>
+        <circle id="gemGlow" cx="60" cy="58" r="17" fill="#0AC8B9"/>
+        <polygon points="60,46 72,58 60,70 48,58" fill="#0AC8B9" stroke="#9ff5ec" stroke-width="1.6"/>
+        <polygon points="60,50 67,58 60,66 53,58" fill="#7fffe9" opacity="0.55"/>
+      </svg>
+    </div>
+    <div class="eggcap">They removed our chests. We kept one.<br><b>Now playing: Hextech Heist</b></div>
+  </div>
+  <div class="center"><button class="btn ghost small" id="eggClose">Close</button></div>
+</div></div>
+
+<div class="overlay" id="audioOverlay"><div class="obox" style="max-width:360px">
+  <h2 style="font-size:18px">Audio</h2>
+  <div class="volrow"><span>Music</span><input type="range" id="musVolR" min="0" max="100" value="35" step="1"><b id="musVolV">35</b></div>
+  <div class="volrow"><span>Effects</span><input type="range" id="sfxVolR" min="0" max="100" value="50" step="1"><b id="sfxVolV">50</b></div>
+  <div class="center"><button class="btn ghost small" id="audioClose">Close</button></div>
+</div></div>
+
+<div class="overlay" id="champOverlay"><div class="obox">
+  <h2>CHALLENGER &middot; RANK 1</h2>
+  <p>You reached the top of the ladder. The AI coach bows. Keep playing to defend your throne.</p>
+  <div class="center"><button class="btn primary" id="closeOverlay">Keep playing</button></div>
+</div></div>
+
+<div class="overlay" id="infoOverlay"><div class="obox">
+  <div class="cinfo">
+    <div class="pic" id="infoPic"></div>
+    <div><h2 id="infoName"></h2><div class="hint" id="infoRole"></div></div>
+    <span class="tpill" id="infoTier" style="width:26px;height:26px;font-size:12px"></span>
+  </div>
+  <div class="tagchips" id="infoTags"></div>
+  <div class="note" id="infoNote"></div>
+  <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+    <a class="btn small" id="infoLink" href="https://www.leagueoflegends.com/en-us/news/game-updates/league-of-legends-patch-26-12-notes/" target="_blank" rel="noopener">Official 26.12 notes</a>
+    <button class="btn ghost small" id="infoClose">Close</button>
+  </div>
+</div></div>
+
+<script src="js/data.js"></script>
+<script src="js/game.js"></script>
+</body>
+</html>
