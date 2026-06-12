@@ -3,7 +3,7 @@
    Everything you edit per patch lives in this file:
    - TIERPTS / champion list C (name, role, tier, tags)
    - NOTES (patch notes per champion shown in the codex)
-   - ITEMDEFS + CLASSOPTS (the item pool and verdicts)
+   - ITEMDEFS (the item pool, verdicts and shop metadata)
    The engine never needs touching for a data update.
    ===================================================================== */
 var DATA_VERSION="26.12";
@@ -140,14 +140,6 @@ function cnt(team,t){ return team.filter(function(x){return x&&has(x,t);}).lengt
 var byRole={}; ROLES.forEach(function(r){ byRole[r]=C.filter(function(c){return c[1]===r;}); });
 
 /* ================= ITEMS ================= */
-function classOf(c){
-  if(c[1]==="SUP") return has(c,"n") ? "ENCH":"ENGS";
-  if(c[1]==="ADC") return "MARK";
-  if(has(c,"v")&&!has(c,"f")) return "ASSA";
-  if(has(c,"f")) return "TANK";
-  if(has(c,"a")) return "MAGE";
-  return "FIGHT";
-}
 /* Each entry carries shop metadata (added for the Phase 2 item overhaul):
    cat = shop tab grouping (Tank, Damage, Magic, Support); dmg = damage profile (ad, ap, none) for the fit rule.
    Verdicts stay v(s,m,e); the scoring pipeline may pass a fourth plan argument later, which JS ignores here. */
@@ -203,15 +195,6 @@ var ITEMDEFS={
  helia:{n:"Echoes of Helia",cat:"Support",dmg:"none",v:function(s,m,e){return cnt(m,"p")>=2?[4,"Poke wars, the echoes sustain you."]:[3,"Chip healing and a slow."];}},
  flowingwater:{n:"Staff of Flowing Water",cat:"Support",dmg:"none",v:function(s,m,e){return cnt(m,"a")>=3?[4,"Your AP team loves the buff."]:[2,"Few AP allies to boost."];}},
  dawncore:{n:"Dawncore",cat:"Support",dmg:"none",v:function(s,m,e){return has(s,"h")||cnt(m,"h")>=3?[4,"Scaling heal and shield power."]:[3,"Steady mana and heal power."];}}
-};
-var CLASSOPTS={
- TANK:["heartsteel","thornmail","kaenic","randuin"],
- FIGHT:["trinity","eclipse","maw"],
- MAGE:["rabadon","voidstaff","zhonya","morello"],
- ASSA:["edge","serpent","youmuu"],
- MARK:["bloodthirster","ldr","mercurial","mortal"],
- ENCH:["moonstone","mikael","locket"],
- ENGS:["mandate","knights","locket","zekes"]
 };
 
 /* Acceptance check (Phase 2, step 1): every ITEMDEFS name must exist in SR_ITEMS, matched by name. */

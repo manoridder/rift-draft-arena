@@ -153,15 +153,27 @@ function counters(meT,enT){
   if(cnt(meT,"v")>=2&&cnt(enT,"f")===0)out.push(["Their backline has no protection against your dives",3]);
   return out;
 }
-function evalTeam(team,items,enemy){
+/* Central fit layer (one location). Layer 1 is the item's own verdict v(); this is layer 2.
+   Global rule: an item whose damage type the holder cannot use is capped to wasted stats.
+   Then an optional per-item fit(baseResult, champ, myTeam, enemyTeam) hook runs. No item
+   defines fit() yet; it is the extension point for per-item refinements. First planned
+   candidate: Guardian Angel carry bias (boost when the holder hard-carries). */
+function applyFit(baseResult,item,champ){
+  var r=baseResult;
+  if((item.dmg==="ap"&&!has(champ,"a"))||(item.dmg==="ad"&&!has(champ,"d"))){
+    r=[1,"Wasted stats on this champion."];
+  }
+  if(typeof item.fit==="function") r=item.fit(r,champ,arguments[3],arguments[4]);
+  return r;
+}
+function evalTeam(team,picks,enemy){
   var base=team.reduce(function(a,c){return a+TIERPTS[c[2]];},0);
   var syn=synergy(team); var synT=syn.reduce(function(a,x){return a+x[1];},0);
   var ctr=counters(team,enemy); var ctrT=ctr.reduce(function(a,x){return a+x[1];},0);
-  var itemRows=team.map(function(c,i){
-    var id=items[i]; var it=id?ITEMDEFS[id]:null;
-    if(!it) return {champ:c,item:"None",pts:0,why:""};
-    var r=it.v(c,team,enemy);
-    return {champ:c,item:it.n,pts:r[0],why:r[1]};
+  var itemRows=picks.map(function(p){
+    var holder=team[p.slot]; var item=ITEMDEFS[p.itemId];
+    var r=applyFit(item.v(holder,team,enemy,null),item,holder,team,enemy);
+    return {champ:holder,item:item.n,pts:r[0],why:r[1]};
   });
   var itemT=itemRows.reduce(function(a,x){return a+x.pts;},0);
   return {base:base,syn:syn,synT:synT,ctr:ctr,ctrT:ctrT,items:itemRows,itemT:itemT,
@@ -248,17 +260,30 @@ function aiBan(){
   for(var i=0;i<scored.length;i++){r-=scored[i][1];if(r<=0)return scored[i][0];}
   return scored[0][0];
 }
-function aiItems(foeT,meT){
-  var smart=0.3+skillNow()*0.078;
-  return foeT.map(function(c){
-    var opts=CLASSOPTS[classOf(c)];
-    if(R()<smart){
-      var best=opts[0],bp=-1;
-      opts.forEach(function(id){var p=ITEMDEFS[id].v(c,foeT,meT)[0];if(p>bp){bp=p;best=id;}});
-      return best;
-    }
-    return opts[Math.floor(R()*opts.length)];
+/* Score every champion-item pair with the full pipeline (verdict plus fit), add skill
+   scaled noise, then greedily take the best 6 respecting max 2 per champion. Each pair is
+   unique, so the same item never lands on one champion twice. Uses only R() (daily seed safe). */
+function bestItemPicks(team,enemy,noiseAmp){
+  var pairs=[];
+  team.forEach(function(c,slot){
+    Object.keys(ITEMDEFS).forEach(function(id){
+      var item=ITEMDEFS[id];
+      var sc=applyFit(item.v(c,team,enemy,null),item,c)[0]+R()*noiseAmp;
+      pairs.push({slot:slot,itemId:id,score:sc});
+    });
   });
+  pairs.sort(function(a,b){return b.score-a.score;});
+  var picks=[],perSlot=[0,0,0,0,0];
+  for(var i=0;i<pairs.length&&picks.length<6;i++){
+    if(perSlot[pairs[i].slot]>=2)continue;
+    picks.push({slot:pairs[i].slot,itemId:pairs[i].itemId});
+    perSlot[pairs[i].slot]++;
+  }
+  return picks;
+}
+function aiItems(team,enemy){
+  var smart=Math.min(1,0.3+skillNow()*0.078);
+  return bestItemPicks(team,enemy,(1-smart)*5);
 }
 
 /* ================= NAV & SHARED UI ================= */
@@ -660,19 +685,11 @@ var PHNL={early:"Early game",mid:"Mid game",late:"Late game"};
 var WINTXT=["Your support lands the engage of the night.","Perfect itemization, their damage just stopped working.","Baron steal at 20 HP.","Your carry free-hits for 8 full seconds thanks to the peel.","Flawless Elder fight."];
 var LOSETXT=["Their assassin one-shots your carry before the fight even starts.","Missed engage, your team follows anyway.","Outscaled. From minute 35 your comp was simply done.","Their support hooks your carry out of position.","Their items were just better picked."];
 var matchResult=null;
-/* Step 2 interim: collapse the pick list to one primary item per champion so the
-   existing evalTeam still runs end to end. Step 3 replaces evalTeam to consume the
-   full 6-pick list (and this helper goes away). */
-function picksToSlotArray(picks){
-  var arr=[null,null,null,null,null];
-  picks.forEach(function(p){ if(arr[p.slot]==null) arr[p.slot]=p.itemId; });
-  return arr;
-}
 function startMatch(){
   var meT=teamArr(G.my),foeT=teamArr(G.foe);
-  var foeItems=aiItems(foeT,meT);
-  var myEv=evalTeam(meT,picksToSlotArray(G.items),foeT);
-  var foeEv=evalTeam(foeT,foeItems,meT);
+  var foePicks=aiItems(foeT,meT);
+  var myEv=evalTeam(meT,G.items,foeT);
+  var foeEv=evalTeam(foeT,foePicks,meT);
   foeEv.total=Math.round(foeEv.total*(1+skillNow()*0.012));
   var myP=phasePower(myEv,meT),foeP=phasePower(foeEv,foeT);
   document.getElementById("matchFoe").textContent=G.foeName;
@@ -689,7 +706,7 @@ function startMatch(){
     if(i>=phases.length){
       var won=wins>=2;
       mapEnd(won);
-      matchResult={won:won,myEv:myEv,foeEv:foeEv,foeItems:foeItems,meT:meT,foeT:foeT,phaseWins:phaseWins,phaseDetail:phaseDetail,side:G.side};
+      matchResult={won:won,myEv:myEv,foeEv:foeEv,foePicks:foePicks,meT:meT,foeT:foeT,phaseWins:phaseWins,phaseDetail:phaseDetail,side:G.side};
       document.getElementById("matchNext").innerHTML='<button class="btn primary" id="toAnalysis">View analysis</button>';
       document.getElementById("toAnalysis").addEventListener("click",showAnalysis);
       return;
@@ -714,7 +731,7 @@ function grade(p){return p>=4?["Strong","g-good"]:p>=2?["Decent","g-ok"]:["Weak"
 function clamp01(x){return Math.max(0,Math.min(1,x));}
 function coachScore(ev){
   var synPct=clamp01((ev.synT+18)/44);
-  var itemPct=clamp01(ev.itemT/25);
+  var itemPct=clamp01(ev.itemT/30);
   var ctrPct=clamp01(ev.ctrT/12);
   var sc=Math.round(100*(0.40*synPct+0.45*itemPct+0.15*ctrPct));
   var g=sc>=85?"S":sc>=70?"A":sc>=55?"B":sc>=40?"C":"D";
@@ -734,7 +751,7 @@ function shareText(R0){
   return head+" ("+sideTxt+")\n"+(R0.won?"VICTORY":"DEFEAT")+" vs "+G.foeName+
     "\nCoach score "+cs.score+"/100 (grade "+cs.grade+")"+
     "\nEarly Mid Late: "+sq+
-    "\nSynergy "+(R0.myEv.synT>=0?"+":"")+R0.myEv.synT+", counters +"+R0.myEv.ctrT+", items "+R0.myEv.itemT+"/25";
+    "\nSynergy "+(R0.myEv.synT>=0?"+":"")+R0.myEv.synT+", counters +"+R0.myEv.ctrT+", items "+R0.myEv.itemT+"/30";
 }
 function copyShare(R0,btn){
   var txt=shareText(R0);
@@ -770,10 +787,12 @@ function showAnalysis(){
   document.getElementById("myCtr").innerHTML=synHtml(R0.myEv.ctr);
   document.getElementById("myItems").innerHTML=R0.myEv.items.map(function(row){
     var g=grade(row.pts);
-    return '<div class="champline"><div class="mini">'+imgTag(row.champ)+'</div><div class="grow"><span style="color:var(--white)">'+row.item+'</span><br><span class="hint">'+row.why+'</span></div><span class="gpill '+g[1]+'">'+g[0]+' +'+row.pts+'</span></div>';
+    return '<div class="champline"><div class="mini">'+imgTag(row.champ)+'</div><div class="grow"><span style="color:var(--white)">'+row.champ[0]+': '+row.item+'</span><br><span class="hint">'+row.why+'</span></div><span class="gpill '+g[1]+'">'+g[0]+' +'+row.pts+'</span></div>';
   }).join("");
   document.getElementById("foeSummary").innerHTML=R0.foeT.map(function(c,i){
-    return '<div class="champline"><div class="mini">'+imgTag(c)+'</div><span class="grow">'+c[0]+' <span class="hint">\u00b7 '+ITEMDEFS[R0.foeItems[i]].n+'</span></span><span class="tpill" style="background:'+TIERCOL[c[2]]+'">'+c[2]+'</span></div>';
+    var its=R0.foePicks.filter(function(p){return p.slot===i;}).map(function(p){return ITEMDEFS[p.itemId].n;});
+    var itxt=its.length?its.join(", "):"no items";
+    return '<div class="champline"><div class="mini">'+imgTag(c)+'</div><span class="grow">'+c[0]+' <span class="hint">\u00b7 '+itxt+'</span></span><span class="tpill" style="background:'+TIERCOL[c[2]]+'">'+c[2]+'</span></div>';
   }).join("")+'<div class="aline" style="margin-top:8px"><span>Enemy synergy plus counters</span><span>'+(R0.foeEv.synT+R0.foeEv.ctrT>=0?"+":"")+(R0.foeEv.synT+R0.foeEv.ctrT)+'</span></div>';
   var fm=document.getElementById("mathPanel");
   fm.innerHTML='<h3>THE MATH</h3>'+
