@@ -824,8 +824,13 @@ document.getElementById("closeOverlay").addEventListener("click",function(){docu
 /* ================= WHAT'S NEW & ROADMAP ================= */
 /* Named versions, newest first. Early pre-release, so we count in small 0.0.x steps.
    1.0 is reserved for the finished game. Bump VERSION and prepend an entry per release. */
-var VERSION={num:"0.0.7",name:"Single Source"};
+var VERSION={num:"0.0.8",name:"Open Shop"};
 var CHANGELOG=[
+ {v:"0.0.8",name:"Open Shop",notes:[
+   "The item phase is now an open shop: buy any item for any champion, six items across the team, max two per champion.",
+   "Items are scored against both teams with a fit check, so off-type buys like an AP item on an AD champion are flagged as wasted stats.",
+   "The AI itemizes from the same open shop, and the post-game analysis shows the full six-item breakdown out of 30."
+ ]},
  {v:"0.0.7",name:"Single Source",notes:[
    "The Roadmap on the menu now reads the live board (roadmap-data.json), so there is one place to maintain it. It falls back to a built-in list when the file cannot be loaded."
  ]},
