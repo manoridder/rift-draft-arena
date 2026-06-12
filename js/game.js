@@ -728,8 +728,11 @@ document.getElementById("closeOverlay").addEventListener("click",function(){docu
 /* ================= WHAT'S NEW & ROADMAP ================= */
 /* Named versions, newest first. Early pre-release, so we count in small 0.0.x steps.
    1.0 is reserved for the finished game. Bump VERSION and prepend an entry per release. */
-var VERSION={num:"0.0.6",name:"Itemize"};
+var VERSION={num:"0.0.7",name:"Single Source"};
 var CHANGELOG=[
+ {v:"0.0.7",name:"Single Source",notes:[
+   "The Roadmap on the menu now reads the live board (roadmap-data.json), so there is one place to maintain it. It falls back to a built-in list when the file cannot be loaded."
+ ]},
  {v:"0.0.6",name:"Itemize",notes:[
    "Every item in the item phase now shows its real gold cost and stats, pulled from verified Summoner's Rift data (Data Dragon 16.12.1)."
  ]},
@@ -754,7 +757,15 @@ var CHANGELOG=[
    "League style UI, a soundtrack with volume sliders, and a hidden Hextech chest."
  ]}
 ];
-var ROADMAP=[
+/* The roadmap overlay reads roadmap-data.json (the board's saved state), grouping the
+   next / plan / idea columns. The done column is the shipped work and lives in What's new. */
+var ROADMAP_PHASES=[
+ {key:"next",head:"Building next"},
+ {key:"plan",head:"Planned"},
+ {key:"idea",head:"Exploring"}
+];
+/* Fallback shown when roadmap-data.json cannot be fetched, for example over file://. */
+var ROADMAP_FALLBACK=[
  {key:"next",head:"Building next",items:[
    {t:"Item overhaul: six items, distribute freely",d:"A team budget of six items, max two per champion, so stacking your win condition becomes a real choice."},
    {t:"Comp identity system",d:"Declare your game plan at draft start. Synergy is judged against that plan instead of one universal mold."},
@@ -778,17 +789,36 @@ function renderNews(){
       e.notes.map(function(n){return '<li>'+escHtml(n)+'</li>';}).join("")+'</ul></div>';
   }).join("");
 }
-function renderRoadmap(){
-  document.getElementById("roadmapList").innerHTML=ROADMAP.map(function(p){
+function renderRoadmap(phases){
+  document.getElementById("roadmapList").innerHTML=phases.map(function(p){
     return '<div class="phase '+p.key+'"><div class="phead">'+escHtml(p.head)+'</div>'+
       p.items.map(function(it){return '<div class="ritem"><b>'+escHtml(it.t)+'</b><span>'+escHtml(it.d)+'</span></div>';}).join("")+'</div>';
   }).join("");
+}
+function roadmapFromData(data){
+  if(!data||!Array.isArray(data.items))return null;
+  var phases=ROADMAP_PHASES.map(function(p){
+    return {key:p.key,head:p.head,
+      items:data.items.filter(function(x){return x&&x.s===p.key&&typeof x.t==="string";})
+                      .map(function(x){return {t:x.t,d:x.d||""};})};
+  }).filter(function(p){return p.items.length;});
+  return phases.length?phases:null;
+}
+function openRoadmap(){
+  snd("click");
+  renderRoadmap(ROADMAP_FALLBACK);
+  showOv("roadmapOverlay");
+  if(typeof fetch!=="function")return;
+  fetch("roadmap-data.json",{cache:"no-store"})
+    .then(function(r){if(!r.ok)throw new Error("status "+r.status);return r.json();})
+    .then(function(data){var ph=roadmapFromData(data);if(ph)renderRoadmap(ph);})
+    .catch(function(){});
 }
 function showOv(id){document.getElementById(id).classList.add("show");}
 function hideOv(id){document.getElementById(id).classList.remove("show");}
 document.getElementById("verTag").textContent="v"+VERSION.num+" "+VERSION.name;
 document.getElementById("whatsNewBtn").addEventListener("click",function(){snd("click");renderNews();showOv("newsOverlay");});
-document.getElementById("roadmapBtn").addEventListener("click",function(){snd("click");renderRoadmap();showOv("roadmapOverlay");});
+document.getElementById("roadmapBtn").addEventListener("click",openRoadmap);
 document.getElementById("newsClose").addEventListener("click",function(){hideOv("newsOverlay");});
 document.getElementById("roadmapClose").addEventListener("click",function(){hideOv("roadmapOverlay");});
 document.getElementById("newsOverlay").addEventListener("click",function(e){if(e.target===this)hideOv("newsOverlay");});
