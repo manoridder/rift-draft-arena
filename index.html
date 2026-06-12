@@ -99,10 +99,25 @@
 
 <!-- ITEMS -->
 <section id="scr-items" class="screen">
-  <div class="phasehead"><h2>Item phase</h2><div class="turnmsg">Pick the right item for each champion against this comp</div></div>
+  <div class="phasehead"><h2>Item phase</h2><div class="turnmsg">Distribute 6 items across your team against this comp</div></div>
   <div class="enemypeek"><h3 id="peekName">ENEMY COMP</h3><div class="slotrow" id="peekSlots"></div></div>
-  <div id="itemList"></div>
-  <div class="center"><button class="btn primary" id="lockItems" disabled>Lock in and play</button></div>
+  <div class="shopchamps" id="shopChamps"></div>
+  <div class="shop">
+    <div class="shophead">
+      <h3>ITEM SHOP</h3>
+      <div class="shopcounter"><span id="itemsLeft">Items left: 6 of 6</span><span class="sub">Max 2 per champion</span></div>
+    </div>
+    <div class="controls">
+      <button class="tab on" data-cat="ALL">ALL</button>
+      <button class="tab" data-cat="DAMAGE">DAMAGE</button>
+      <button class="tab" data-cat="MAGIC">MAGIC</button>
+      <button class="tab" data-cat="TANK">TANK</button>
+      <button class="tab" data-cat="SUPPORT">SUPPORT</button>
+      <input class="search" id="shopSearch" type="search" placeholder="Search item..." aria-label="Search item">
+    </div>
+    <div id="shopGrid"></div>
+  </div>
+  <div class="center"><button class="btn primary" id="lockItems" disabled>Lock in items</button></div>
 </section>
 
 <!-- MATCH -->

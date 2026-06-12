@@ -158,7 +158,9 @@ function evalTeam(team,items,enemy){
   var syn=synergy(team); var synT=syn.reduce(function(a,x){return a+x[1];},0);
   var ctr=counters(team,enemy); var ctrT=ctr.reduce(function(a,x){return a+x[1];},0);
   var itemRows=team.map(function(c,i){
-    var it=ITEMDEFS[items[i]]; var r=it.v(c,team,enemy);
+    var id=items[i]; var it=id?ITEMDEFS[id]:null;
+    if(!it) return {champ:c,item:"None",pts:0,why:""};
+    var r=it.v(c,team,enemy);
     return {champ:c,item:it.n,pts:r[0],why:r[1]};
   });
   var itemT=itemRows.reduce(function(a,x){return a+x.pts;},0);
@@ -469,38 +471,105 @@ function srMeta(name){
   if(!it)return "";
   return '<span class="srmeta"><span class="g">'+it.gold.total+'g</span> · '+it.statsText+'</span>';
 }
+/* Open shop (Phase 2). G.items is a pick list: each entry {slot, itemId}.
+   End state: exactly 6 picks, max 2 per slot, no duplicate itemId within one slot. */
+var shopCat="ALL",shopQ="";
+function itemIcon(id){
+  var sr=SR_BY_NAME[ITEMDEFS[id].n];
+  return sr&&sr.image?'<img src="'+sr.image+'" alt="'+ITEMDEFS[id].n+'" loading="lazy">':"";
+}
+function picksFor(slot){return G.items.filter(function(p){return p.slot===slot;});}
+function renderShopChamps(){
+  var meT=teamArr(G.my);
+  var host=document.getElementById("shopChamps");host.innerHTML="";
+  meT.forEach(function(c,i){
+    var picks=picksFor(i),slotsHtml="";
+    for(var k=0;k<2;k++){
+      var p=picks[k];
+      slotsHtml+=p
+        ? '<div class="islot filled" data-slot="'+i+'" data-item="'+p.itemId+'" title="Remove '+ITEMDEFS[p.itemId].n+'">'+itemIcon(p.itemId)+'<span class="rm">\u00d7</span></div>'
+        : '<div class="islot" data-slot="'+i+'"></div>';
+    }
+    host.innerHTML+='<div class="shopchamp'+(i===G.activeChamp?" active":"")+'" data-slot="'+i+'">'+
+      '<div class="pic">'+imgTag(c)+'</div>'+
+      '<div class="nm">'+c[0]+'</div><div class="rl">'+ROLENL[ROLES[i]]+'</div>'+
+      '<div class="islots">'+slotsHtml+'</div></div>';
+  });
+  host.querySelectorAll(".shopchamp").forEach(function(card){
+    card.addEventListener("click",function(e){
+      var slotEl=e.target.closest?e.target.closest(".islot.filled"):null;
+      if(slotEl){removePick(+slotEl.dataset.slot,slotEl.dataset.item);return;}
+      G.activeChamp=+card.dataset.slot;snd("click");renderShopChamps();renderShopGrid();
+    });
+  });
+}
+function renderShopGrid(){
+  var host=document.getElementById("shopGrid");host.innerHTML="";
+  var g=document.createElement("div");g.className="shopgrid";
+  Object.keys(ITEMDEFS).map(function(id){return [id,ITEMDEFS[id]];})
+    .filter(function(pair){
+      if(shopCat!=="ALL"&&pair[1].cat.toUpperCase()!==shopCat)return false;
+      if(shopQ&&pair[1].n.toLowerCase().indexOf(shopQ)<0)return false;
+      return true;
+    })
+    .sort(function(a,b){return a[1].n.localeCompare(b[1].n);})
+    .forEach(function(pair){
+      var id=pair[0],it=pair[1];
+      var owned=picksFor(G.activeChamp).some(function(p){return p.itemId===id;});
+      var d=document.createElement("div");
+      d.className="shopitem"+(owned?" owned":"");
+      d.innerHTML='<div class="ico">'+itemIcon(id)+'</div><div class="info"><b>'+it.n+'</b>'+srMeta(it.n)+'</div>';
+      d.addEventListener("click",function(){assignItem(id);});
+      g.appendChild(d);
+    });
+  host.appendChild(g);
+}
+function flashActive(){
+  var card=document.querySelector('.shopchamp[data-slot="'+G.activeChamp+'"]');
+  if(!card)return;
+  card.classList.add("flash");
+  setTimeout(function(){card.classList.remove("flash");},450);
+}
+function assignItem(id){
+  var picks=picksFor(G.activeChamp);
+  if(picks.length>=2||G.items.length>=6||picks.some(function(p){return p.itemId===id;})){
+    snd("click");flashActive();return;
+  }
+  G.items.push({slot:G.activeChamp,itemId:id});
+  snd("pick");renderShopChamps();renderShopGrid();updateShopState();
+}
+function removePick(slot,id){
+  var i=G.items.findIndex(function(p){return p.slot===slot&&p.itemId===id;});
+  if(i<0)return;
+  G.items.splice(i,1);
+  snd("ban");renderShopChamps();renderShopGrid();updateShopState();
+}
+function updateShopState(){
+  document.getElementById("itemsLeft").textContent="Items left: "+(6-G.items.length)+" of 6";
+  document.getElementById("lockItems").disabled=G.items.length!==6;
+}
 function startItems(){
-  var meT=teamArr(G.my),foeT=teamArr(G.foe);
+  var foeT=teamArr(G.foe);
   document.getElementById("peekName").textContent=G.foeName.toUpperCase()+" \u00b7 KNOW YOUR ENEMY";
   var peek=document.getElementById("peekSlots");peek.innerHTML="";
   foeT.forEach(function(c){
     peek.innerHTML+='<div class="pslot filled"><div class="pic">'+imgTag(c)+'</div><div class="nm">'+c[0]+'</div></div>';
   });
-  var list=document.getElementById("itemList");list.innerHTML="";
-  meT.forEach(function(c,i){
-    var opts=CLASSOPTS[classOf(c)];
-    var box=document.createElement("div");box.className="itemchamp";
-    box.innerHTML='<div class="head"><div class="pic">'+imgTag(c)+'</div><div class="who"><b>'+c[0]+'</b><span>'+ROLENL[ROLES[i]]+'</span></div></div>'+
-      '<div class="iopts">'+opts.map(function(id){
-        var it=ITEMDEFS[id];
-        return '<div class="iopt" data-slot="'+i+'" data-item="'+id+'"><b>'+it.n+'</b>'+srMeta(it.n)+'<span>'+it.d+'</span></div>';
-      }).join("")+'</div>';
-    list.appendChild(box);
-  });
-  list.querySelectorAll(".iopt").forEach(function(o){
-    o.addEventListener("click",function(){
-      snd("click");
-      var slot=+o.dataset.slot;
-      G.items[slot]=o.dataset.item;
-      o.parentElement.querySelectorAll(".iopt").forEach(function(x){x.classList.remove("sel");});
-      o.classList.add("sel");
-      document.getElementById("lockItems").disabled=G.items.some(function(x){return !x;});
-    });
-  });
-  G.items=[null,null,null,null,null];
-  document.getElementById("lockItems").disabled=true;
+  G.items=[];G.activeChamp=0;shopCat="ALL";shopQ="";
+  var sb=document.getElementById("shopSearch");if(sb)sb.value="";
+  document.querySelectorAll("#scr-items .controls .tab").forEach(function(x){x.classList.toggle("on",x.dataset.cat==="ALL");});
+  renderShopChamps();renderShopGrid();updateShopState();
   show("scr-items");
 }
+document.querySelectorAll("#scr-items .controls .tab").forEach(function(t){
+  t.addEventListener("click",function(){
+    document.querySelectorAll("#scr-items .controls .tab").forEach(function(x){x.classList.remove("on");});
+    t.classList.add("on");snd("click");shopCat=t.dataset.cat;renderShopGrid();
+  });
+});
+document.getElementById("shopSearch").addEventListener("input",function(e){
+  shopQ=e.target.value.toLowerCase();renderShopGrid();
+});
 document.getElementById("lockItems").addEventListener("click",function(){snd("pick");startMatch();});
 
 /* ================= RIFT MAP ================= */
@@ -591,10 +660,18 @@ var PHNL={early:"Early game",mid:"Mid game",late:"Late game"};
 var WINTXT=["Your support lands the engage of the night.","Perfect itemization, their damage just stopped working.","Baron steal at 20 HP.","Your carry free-hits for 8 full seconds thanks to the peel.","Flawless Elder fight."];
 var LOSETXT=["Their assassin one-shots your carry before the fight even starts.","Missed engage, your team follows anyway.","Outscaled. From minute 35 your comp was simply done.","Their support hooks your carry out of position.","Their items were just better picked."];
 var matchResult=null;
+/* Step 2 interim: collapse the pick list to one primary item per champion so the
+   existing evalTeam still runs end to end. Step 3 replaces evalTeam to consume the
+   full 6-pick list (and this helper goes away). */
+function picksToSlotArray(picks){
+  var arr=[null,null,null,null,null];
+  picks.forEach(function(p){ if(arr[p.slot]==null) arr[p.slot]=p.itemId; });
+  return arr;
+}
 function startMatch(){
   var meT=teamArr(G.my),foeT=teamArr(G.foe);
   var foeItems=aiItems(foeT,meT);
-  var myEv=evalTeam(meT,G.items,foeT);
+  var myEv=evalTeam(meT,picksToSlotArray(G.items),foeT);
   var foeEv=evalTeam(foeT,foeItems,meT);
   foeEv.total=Math.round(foeEv.total*(1+skillNow()*0.012));
   var myP=phasePower(myEv,meT),foeP=phasePower(foeEv,foeT);
