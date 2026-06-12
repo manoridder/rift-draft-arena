@@ -304,6 +304,123 @@ h3,
   flex-wrap: wrap;
   margin-top: 26px;
 }
+/* ---- menu: what's new / roadmap ---- */
+.menumeta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 22px;
+}
+.metalink {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: "Cinzel", serif;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--gold);
+  padding: 4px 2px;
+  transition: color 0.15s, text-shadow 0.15s;
+}
+.metalink:hover {
+  color: var(--gold-bright);
+  text-shadow: 0 0 12px rgba(200, 170, 110, 0.4);
+}
+.metasep {
+  color: var(--gold-dim);
+}
+.vtag {
+  margin-left: 8px;
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--blue);
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  padding: 1px 6px;
+}
+/* ---- scrollable overlay box ---- */
+.obox.tallbox {
+  max-height: 82vh;
+  overflow-y: auto;
+}
+/* ---- changelog ---- */
+.changelog .ver {
+  border-top: 1px solid var(--line);
+  padding: 12px 0;
+}
+.changelog .ver:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+.changelog .vhead {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 7px;
+}
+.changelog .vnum {
+  font-family: "Cinzel", serif;
+  font-size: 12px;
+  color: var(--blue);
+  letter-spacing: 0.08em;
+}
+.changelog .vname {
+  font-family: "Cinzel", serif;
+  font-size: 15px;
+  color: var(--gold-bright);
+}
+.changelog ul {
+  margin: 0;
+  padding-left: 18px;
+}
+.changelog li {
+  font-size: 13px;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+/* ---- roadmap ---- */
+.roadmap .phase {
+  margin-bottom: 16px;
+}
+.roadmap .phead {
+  font-family: "Cinzel", serif;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.roadmap .phead::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  transform: rotate(45deg);
+  background: currentColor;
+  flex: none;
+}
+.roadmap .phase.next .phead { color: var(--gold); }
+.roadmap .phase.plan .phead { color: var(--purple, #9c7bd6); }
+.roadmap .phase.idea .phead { color: var(--text); }
+.roadmap .ritem {
+  border: 1px solid var(--line);
+  background: linear-gradient(180deg, #0c1a30, #081220);
+  padding: 9px 11px;
+  margin-bottom: 8px;
+}
+.roadmap .ritem b {
+  display: block;
+  color: var(--gold-bright);
+  font-size: 13px;
+  margin-bottom: 3px;
+}
+.roadmap .ritem span {
+  font-size: 12.5px;
+  color: var(--text);
+}
 .chestwrap {
   margin: 30px auto 4px;
   display: flex;

@@ -725,6 +725,75 @@ function showAnalysis(){
 }
 document.getElementById("closeOverlay").addEventListener("click",function(){document.getElementById("champOverlay").classList.remove("show");});
 
+/* ================= WHAT'S NEW & ROADMAP ================= */
+/* Named versions, newest first. Early pre-release, so we count in small 0.0.x steps.
+   1.0 is reserved for the finished game. Bump VERSION and prepend an entry per release. */
+var VERSION={num:"0.0.6",name:"Itemize"};
+var CHANGELOG=[
+ {v:"0.0.6",name:"Itemize",notes:[
+   "Every item in the item phase now shows its real gold cost and stats, pulled from verified Summoner's Rift data (Data Dragon 16.12.1)."
+ ]},
+ {v:"0.0.5",name:"Skill Expression",notes:[
+   "Tier point spread compressed so smart drafting outweighs raw tier luck.",
+   "Coach score from 0 to 100 with a letter grade added to the result banner and share text, based only on what you control."
+ ]},
+ {v:"0.0.4",name:"Open Book",notes:[
+   "The Math panel breaks down every result: your totals, the enemy totals, item verdicts and the exact phase rolls."
+ ]},
+ {v:"0.0.3",name:"Patch Verified",notes:[
+   "All item and champion data verified against the official 26.12 notes, Summoner's Rift sections only.",
+   "Arena-only changes removed, wrong items fixed, and real 26.12 champion notes added."
+ ]},
+ {v:"0.0.2",name:"Tournament Realm",notes:[
+   "Blue or red side select before every game.",
+   "Full pro draft order with interleaved double ban phases."
+ ]},
+ {v:"0.0.1",name:"First Blood",notes:[
+   "First playable build: ban, draft with three-option offers and two rerolls, item phase and full post-game analysis.",
+   "Daily challenge with a shared AI seed, and a ranked ladder from Iron to Challenger.",
+   "League style UI, a soundtrack with volume sliders, and a hidden Hextech chest."
+ ]}
+];
+var ROADMAP=[
+ {key:"next",head:"Building next",items:[
+   {t:"Item overhaul: six items, distribute freely",d:"A team budget of six items, max two per champion, so stacking your win condition becomes a real choice."},
+   {t:"Comp identity system",d:"Declare your game plan at draft start. Synergy is judged against that plan instead of one universal mold."},
+   {t:"Strategic value scoring",d:"Plan fit, item allocation and counterplay become the main score drivers. Tiers become the floor, not the ceiling."},
+   {t:"Data pipeline for patch updates",d:"The game consumes the verified SR item data with a visible version label, and the roster autoloads from Data Dragon."}
+ ]},
+ {key:"plan",head:"Planned",items:[
+   {t:"Longer, tenser matches",d:"More beats per match: lane phase, objectives, Baron and a final fight, with comeback mechanics and real suspense."},
+   {t:"PvP, local first",d:"Hotseat drafting on one device first, then correspondence codes, maybe a tiny relay later. No accounts."}
+ ]},
+ {key:"idea",head:"Exploring",items:[
+   {t:"Tiers even less relevant",d:"Test variants where tiers only break ties, once the scoring rework lands."},
+   {t:"Coach training mode",d:"Scenario mode and exportable post-game reports to actually learn drafting."},
+   {t:"Daily leaderboard",d:"Comparable coach scores on the daily seed, riding along with any online work."}
+ ]}
+];
+function escHtml(s){return String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+function renderNews(){
+  document.getElementById("newsList").innerHTML=CHANGELOG.map(function(e){
+    return '<div class="ver"><div class="vhead"><span class="vnum">v'+e.v+'</span><span class="vname">'+escHtml(e.name)+'</span></div><ul>'+
+      e.notes.map(function(n){return '<li>'+escHtml(n)+'</li>';}).join("")+'</ul></div>';
+  }).join("");
+}
+function renderRoadmap(){
+  document.getElementById("roadmapList").innerHTML=ROADMAP.map(function(p){
+    return '<div class="phase '+p.key+'"><div class="phead">'+escHtml(p.head)+'</div>'+
+      p.items.map(function(it){return '<div class="ritem"><b>'+escHtml(it.t)+'</b><span>'+escHtml(it.d)+'</span></div>';}).join("")+'</div>';
+  }).join("");
+}
+function showOv(id){document.getElementById(id).classList.add("show");}
+function hideOv(id){document.getElementById(id).classList.remove("show");}
+document.getElementById("verTag").textContent="v"+VERSION.num+" "+VERSION.name;
+document.getElementById("whatsNewBtn").addEventListener("click",function(){snd("click");renderNews();showOv("newsOverlay");});
+document.getElementById("roadmapBtn").addEventListener("click",function(){snd("click");renderRoadmap();showOv("roadmapOverlay");});
+document.getElementById("newsClose").addEventListener("click",function(){hideOv("newsOverlay");});
+document.getElementById("roadmapClose").addEventListener("click",function(){hideOv("roadmapOverlay");});
+document.getElementById("newsOverlay").addEventListener("click",function(e){if(e.target===this)hideOv("newsOverlay");});
+document.getElementById("roadmapOverlay").addEventListener("click",function(e){if(e.target===this)hideOv("roadmapOverlay");});
+
 /* ================= START ================= */
 var pendingMode="ranked";
 function requestGame(mode){
