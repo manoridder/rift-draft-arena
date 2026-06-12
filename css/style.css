@@ -781,6 +781,17 @@ h3,
 .iopt span {
   font-size: 12px;
 }
+.iopt .srmeta {
+  display: block;
+  margin: 0 0 4px;
+  font-size: 11px;
+  color: var(--gold);
+  opacity: 0.9;
+}
+.iopt .srmeta .g {
+  color: var(--gold-bright);
+  font-weight: 600;
+}
 .enemypeek {
   background: linear-gradient(180deg, #1a0e16, #100810);
   border: 1px solid var(--red-dim);

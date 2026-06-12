@@ -459,6 +459,16 @@ document.getElementById("rerollBtn").addEventListener("click",function(){
 });
 
 /* ================= ITEM PHASE ================= */
+/* Real SR item data (gold + statsText) from SR_ITEMS, matched on name. Display only, no effect on scoring. */
+var SR_BY_NAME={};
+if(typeof SR_ITEMS!=="undefined"&&SR_ITEMS&&SR_ITEMS.items){
+  SR_ITEMS.items.forEach(function(it){SR_BY_NAME[it.name]=it;});
+}
+function srMeta(name){
+  var it=SR_BY_NAME[name];
+  if(!it)return "";
+  return '<span class="srmeta"><span class="g">'+it.gold.total+'g</span> · '+it.statsText+'</span>';
+}
 function startItems(){
   var meT=teamArr(G.my),foeT=teamArr(G.foe);
   document.getElementById("peekName").textContent=G.foeName.toUpperCase()+" \u00b7 KNOW YOUR ENEMY";
@@ -473,7 +483,7 @@ function startItems(){
     box.innerHTML='<div class="head"><div class="pic">'+imgTag(c)+'</div><div class="who"><b>'+c[0]+'</b><span>'+ROLENL[ROLES[i]]+'</span></div></div>'+
       '<div class="iopts">'+opts.map(function(id){
         var it=ITEMDEFS[id];
-        return '<div class="iopt" data-slot="'+i+'" data-item="'+id+'"><b>'+it.n+'</b><span>'+it.d+'</span></div>';
+        return '<div class="iopt" data-slot="'+i+'" data-item="'+id+'"><b>'+it.n+'</b>'+srMeta(it.n)+'<span>'+it.d+'</span></div>';
       }).join("")+'</div>';
     list.appendChild(box);
   });
