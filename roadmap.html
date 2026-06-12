@@ -269,8 +269,20 @@ document.getElementById("resetBtn").addEventListener("click",function(){
   }
 });
 
-state.items=freshDefaults();
-render();
+function init(){
+  if(typeof fetch!=="function"){state.items=freshDefaults();render();return;}
+  fetch("roadmap-data.json",{cache:"no-store"})
+    .then(function(r){if(!r.ok)throw new Error("status "+r.status);return r.json();})
+    .then(function(data){
+      if(!data||!Array.isArray(data.items))throw new Error("no items array");
+      var ok=data.items.every(function(x){return x&&typeof x.t==="string"&&ORDER.indexOf(x.s)>=0;});
+      if(!ok)throw new Error("bad item shape");
+      data.items.forEach(function(x){if(!x.id)x.id="c"+(idSeq++);});
+      state.items=data.items;editingId=null;openIds={};render();
+    })
+    .catch(function(){state.items=freshDefaults();render();});
+}
+init();
 </script>
 </body>
 </html>
