@@ -212,7 +212,25 @@ var ITEMDEFS={
  stridebreaker:{n:"Stridebreaker",cat:"Damage",dmg:"ad",v:function(s,m,e){return cnt(m,"e")<=1?[4,"Gives your bruiser the engage tool the team lacks."]:[3,"Cleave damage with a built-in dash."];}},
  nashors:{n:"Nashor's Tooth",cat:"Magic",dmg:"ap",v:function(s,m,e){return has(s,"a")?[4,"On-hit AP spike for your ability carry."]:[2,"Little AP here to power the on-hit."];}},
  cosmicdrive:{n:"Cosmic Drive",cat:"Magic",dmg:"ap",v:function(s,m,e){return cnt(m,"p")>=2?[4,"Speed to kite in your poke and spread comp."]:[3,"Haste and move speed on your mage."];}},
- chempunk:{n:"Chempunk Chainsword",cat:"Damage",dmg:"ad",v:function(s,m,e){return cnt(e,"n")>=1||cnt(e,"s")>=2?[5,"AD grievous wounds against their healing."]:[2,"Little enemy healing to cut."];}}
+ chempunk:{n:"Chempunk Chainsword",cat:"Damage",dmg:"ad",v:function(s,m,e){return cnt(e,"n")>=1||cnt(e,"s")>=2?[5,"AD grievous wounds against their healing."]:[2,"Little enemy healing to cut."];}},
+ essencereaver:{n:"Essence Reaver",cat:"Damage",dmg:"ad",v:function(s,m,e){return has(s,"h")?[4,"Crit and haste keep your carry casting."]:[3,"Crit with ability haste."];}},
+ shieldbow:{n:"Immortal Shieldbow",cat:"Damage",dmg:"ad",v:function(s,m,e){return cnt(e,"v")>=2||cnt(e,"e")>=2?[5,"The shield saves your carry from their all-in."]:cnt(e,"v")===1?[3,"A lifeline against their one diver."]:[2,"Little burst to shield against."];}},
+ phantomdancer:{n:"Phantom Dancer",cat:"Damage",dmg:"ad",v:function(s,m,e){return cnt(e,"v")>=2?[4,"Move speed and a ghost to slip their dive."]:[3,"Attack speed and survivability."];}},
+ runaans:{n:"Runaan's Hurricane",cat:"Damage",dmg:"ad",v:function(s,m,e){return cnt(e,"f")>=2?[4,"Multiple targets means your auto carry cleaves the frontline."]:[2,"Few clustered targets to hit."];}},
+ firecannon:{n:"Rapid Firecannon",cat:"Damage",dmg:"ad",v:function(s,m,e){return cnt(e,"p")>=2?[4,"Extra range to answer their poke first."]:[3,"Range and an energized first hit."];}},
+ navori:{n:"Navori Flickerblade",cat:"Damage",dmg:"ad",v:function(s,m,e){return has(s,"h")?[4,"Crit that refunds your carry's abilities."]:[3,"Crit and cooldowns on hit."];}},
+ statikk:{n:"Statikk Shiv",cat:"Damage",dmg:"ad",v:function(s,m,e){return cnt(e,"f")>=2?[4,"Chain lightning clears their grouped frontline and waves."]:[3,"Energized waveclear and chip."];}},
+ yuntal:{n:"Yun Tal Wildarrows",cat:"Damage",dmg:"ad",v:function(s,m,e){return has(s,"h")?[4,"Early crit spike for your scaling carry."]:[3,"An early crit power spike."];}},
+ stormrazor:{n:"Stormrazor",cat:"Damage",dmg:"ad",v:function(s,m,e){return has(s,"r")||cnt(m,"r")>=2?[4,"An energized burst to open fights on your tempo."]:[3,"An energized opening hit."];}},
+ rodofages:{n:"Rod of Ages",cat:"Magic",dmg:"mana",v:function(s,m,e){return has(s,"h")?[5,"A scaling stat stack your late game mage dreams of."]:[3,"Slow but steady stat scaling."];}},
+ ludens:{n:"Luden's Echo",cat:"Magic",dmg:"mana",v:function(s,m,e){return cnt(e,"f")<=1?[4,"Burst and waveclear into their squishy lineup."]:[3,"Burst damage and waveclear."];}},
+ malignance:{n:"Malignance",cat:"Magic",dmg:"mana",v:function(s,m,e){return has(s,"h")?[4,"Ultimate focused mage scaling and burn."]:[3,"Ultimate haste and a burn field."];}},
+ horizon:{n:"Horizon Focus",cat:"Magic",dmg:"ap",v:function(s,m,e){return cnt(m,"p")>=2?[4,"Reveals and amps damage in your poke war."]:[3,"Bonus damage on long range hits."];}},
+ rylais:{n:"Rylai's Crystal Scepter",cat:"Magic",dmg:"ap",v:function(s,m,e){return cnt(m,"p")>=2||cnt(m,"v")===0?[4,"Every spell slows, locking targets for your team."]:[3,"Health and a slow on your spells."];}},
+ rocketbelt:{n:"Hextech Rocketbelt",cat:"Magic",dmg:"ap",v:function(s,m,e){return cnt(m,"e")<=1?[4,"A dash to give your mage the engage the team lacks."]:[3,"A dash and a burst of magic damage."];}},
+ archangels:{n:"Archangel's Staff",cat:"Magic",dmg:"mana",v:function(s,m,e){return has(s,"h")?[5,"Mana stacking into a massive late game shield and AP."]:[3,"Mana and ability haste to scale."];}},
+ manamune:{n:"Manamune",cat:"Damage",dmg:"mana",v:function(s,m,e){return has(s,"h")?[4,"Mana stacking AD for your scaling caster carry."]:[3,"Mana and AD for a caster."];}},
+ guinsoos:{n:"Guinsoo's Rageblade",cat:"Damage",dmg:"none",v:function(s,m,e){return has(s,"a")&&has(s,"d")?[5,"On-hit hybrid scaling for an attack based fighter."]:has(s,"a")?[3,"On-hit AP for an ability carry."]:[2,"On-hit value without the hybrid stats."];}}
 };
 
 /* Acceptance check (Phase 2, step 1): every ITEMDEFS name must exist in SR_ITEMS, matched by name. */
