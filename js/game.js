@@ -824,8 +824,11 @@ document.getElementById("closeOverlay").addEventListener("click",function(){docu
 /* ================= WHAT'S NEW ================= */
 /* Named versions, newest first. Early pre-release, so we count in small 0.0.x steps.
    1.0 is reserved for the finished game. Bump VERSION and prepend an entry per release. */
-var VERSION={num:"0.0.9",name:"Restock"};
+var VERSION={num:"0.0.10",name:"The Armory Expands"};
 var CHANGELOG=[
+ {v:"0.0.10",name:"The Armory Expands",notes:[
+   "Crit carries and mana mages restock the shelves. Build paths just got wider."
+ ]},
  {v:"0.0.9",name:"Restock",notes:[
    "Eighteen new items join the shop: anti attack-speed, anti-heal, scaling magic resist, armor penetration against tanks, on-hit AP and more.",
    "Mana items only pay off on champions that actually build mana, otherwise they read as wasted stats."
