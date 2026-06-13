@@ -35,6 +35,10 @@ Itemgoud en stats komen uit `SR_ITEMS` (uit sr-items.json), gematcht op naam: ee
 - Versies staan in `VERSION` + `CHANGELOG` bovenin de "What's new"-sectie in `js/game.js`. Schema is klein: `0.0.x` pre-release met een naam per versie, `1.0` gereserveerd voor het afgemaakte spel. Nieuwe release: bump `VERSION` en zet een blok bovenin `CHANGELOG`.
 - De roadmap is `roadmap-data.json` (de opgeslagen bordstaat). Onderhoud die door `roadmap.html?edit` te openen, te bewerken en "Save to file" te doen, en dat bestand te committen. Zowel de in-game Roadmap-popup als roadmap.html lezen het.
 
+## Design decisions
+
+Tier 3 boots (Armored Advance, Chainlaced Crushers, Gunmetal Greaves, Spellslinger's Shoes) are intentionally excluded from the shop. In the current 6-item budget they would waste a slot and rarely beat a legendary. If a future game mode adds a separate boots slot, they can be reintroduced with their own scoring (movement, tenacity vs CC, armor vs AD, magic pen vs AP).
+
 ## Stijlregels
 
 - Gebruik nooit em dashes, niet in code en niet in teksten. Gebruik in plaats daarvan een gewone komma, dubbele punt, haakjes of een nieuwe zin.
