@@ -824,8 +824,11 @@ document.getElementById("closeOverlay").addEventListener("click",function(){docu
 /* ================= WHAT'S NEW ================= */
 /* Named versions, newest first. Early pre-release, so we count in small 0.0.x steps.
    1.0 is reserved for the finished game. Bump VERSION and prepend an entry per release. */
-var VERSION={num:"0.0.10",name:"The Armory Expands"};
+var VERSION={num:"0.0.11",name:"The Last Crate"};
 var CHANGELOG=[
+ {v:"0.0.11",name:"The Last Crate",notes:[
+   "The final legendaries hit the shelves. The shop is fully stocked."
+ ]},
  {v:"0.0.10",name:"The Armory Expands",notes:[
    "Crit carries and mana mages restock the shelves. Build paths just got wider."
  ]},

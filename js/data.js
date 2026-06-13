@@ -230,7 +230,24 @@ var ITEMDEFS={
  rocketbelt:{n:"Hextech Rocketbelt",cat:"Magic",dmg:"ap",v:function(s,m,e){return cnt(m,"e")<=1?[4,"A dash to give your mage the engage the team lacks."]:[3,"A dash and a burst of magic damage."];}},
  archangels:{n:"Archangel's Staff",cat:"Magic",dmg:"mana",v:function(s,m,e){return has(s,"h")?[5,"Mana stacking into a massive late game shield and AP."]:[3,"Mana and ability haste to scale."];}},
  manamune:{n:"Manamune",cat:"Damage",dmg:"mana",v:function(s,m,e){return has(s,"h")?[4,"Mana stacking AD for your scaling caster carry."]:[3,"Mana and AD for a caster."];}},
- guinsoos:{n:"Guinsoo's Rageblade",cat:"Damage",dmg:"none",v:function(s,m,e){return has(s,"a")&&has(s,"d")?[5,"On-hit hybrid scaling for an attack based fighter."]:has(s,"a")?[3,"On-hit AP for an ability carry."]:[2,"On-hit value without the hybrid stats."];}}
+ guinsoos:{n:"Guinsoo's Rageblade",cat:"Damage",dmg:"none",v:function(s,m,e){return has(s,"a")&&has(s,"d")?[5,"On-hit hybrid scaling for an attack based fighter."]:has(s,"a")?[3,"On-hit AP for an ability carry."]:[2,"On-hit value without the hybrid stats."];}},
+ mejais:{n:"Mejai's Soulstealer",cat:"Magic",dmg:"ap",v:function(s,m,e){return has(s,"r")&&cnt(m,"r")>=2?[4,"Snowball comp, the stacks turn a lead into a landslide."]:[1,"Without a snowball plan the stacks fall off."];}},
+ terminus:{n:"Terminus",cat:"Damage",dmg:"none",v:function(s,m,e){return cnt(e,"a")>=2&&cnt(e,"d")>=1?[4,"On-hit that punches through mixed resists."]:[3,"On-hit with adaptive resists."];}},
+ gunblade:{n:"Hextech Gunblade",cat:"Magic",dmg:"ap",v:function(s,m,e){return has(s,"v")?[4,"Hybrid damage and healing for an AP diver."]:[2,"Bursty AP without a dive to use it."];}},
+ sunderedsky:{n:"Sundered Sky",cat:"Damage",dmg:"ad",v:function(s,m,e){return cnt(m,"v")>=1||has(s,"v")?[4,"A guaranteed crit and a heal to win bruiser duels."]:[3,"A crit and a heal on a cooldown."];}},
+ bastionbreaker:{n:"Bastionbreaker",cat:"Damage",dmg:"ad",v:function(s,m,e){return cnt(e,"f")>=2?[4,"Built to break the bigger bodies in front of you."]:[3,"Steady bruiser damage and durability."];}},
+ endlesshunger:{n:"Endless Hunger",cat:"Damage",dmg:"ad",v:function(s,m,e){return cnt(e,"e")>=2||cnt(e,"v")>=2?[4,"Omnivamp and tenacity to grind out their all-in."]:[3,"Sustain and tenacity in a brawl."];}},
+ bloodmail:{n:"Overlord's Bloodmail",cat:"Damage",dmg:"ad",v:function(s,m,e){return has(s,"v")||has(s,"f")?[4,"Health that becomes damage for a frontline bruiser."]:[2,"Health into AD without a brawler to use it."];}},
+ actualizer:{n:"Actualizer",cat:"Magic",dmg:"mana",v:function(s,m,e){return has(s,"h")?[4,"Cheap mana and scaling for your caster's mid game."]:[3,"Cheap mana and ability haste."];}},
+ bandlepipes:{n:"Bandlepipes",cat:"Support",dmg:"none",v:function(s,m,e){return cnt(e,"a")>=1&&cnt(e,"d")>=1?[4,"Resists both ways plus utility for an enchanter."]:[3,"Dual resists and team utility."];}},
+ bloodletter:{n:"Bloodletter's Curse",cat:"Magic",dmg:"ap",v:function(s,m,e){return cnt(e,"f")>=2?[4,"Magic pen that scales against their stacked health."]:[3,"Magic pen and burst."];}},
+ protoplasm:{n:"Protoplasm Harness",cat:"Tank",dmg:"none",v:function(s,m,e){return cnt(m,"a")>=2||cnt(m,"p")>=2?[4,"A tanky battery for a backline caster under pressure."]:[3,"Durable utility for the backline."];}},
+ hexoptics:{n:"Hexoptics C44",cat:"Damage",dmg:"ad",v:function(s,m,e){return cnt(e,"f")===0?[4,"Crit and tempo to delete their squishy lineup."]:[3,"Crit and attack tempo."];}},
+ fiendhunter:{n:"Fiendhunter Bolts",cat:"Damage",dmg:"ad",v:function(s,m,e){return cnt(e,"v")>=2?[4,"Attack speed and crit that punish their divers."]:[3,"Attack speed and crit tempo."];}},
+ hexplate:{n:"Experimental Hexplate",cat:"Damage",dmg:"ad",v:function(s,m,e){return has(s,"v")?[4,"Ultimate haste and attack speed for a fighter who dives."]:[3,"Ultimate haste and attack speed."];}},
+ duskdawn:{n:"Dusk and Dawn",cat:"Damage",dmg:"none",v:function(s,m,e){return has(s,"a")&&has(s,"d")?[4,"Hybrid stats for a champion that wants both."]:has(s,"a")?[3,"Some hybrid value for an ability carry."]:[2,"Hybrid stats only half used here."];}},
+ wintersapproach:{n:"Winter's Approach",cat:"Tank",dmg:"mana",v:function(s,m,e){return cnt(e,"e")>=2?[4,"Mana, health and a slow shield against their engage."]:[3,"Mana and health with a shield."];}},
+ shurelyas:{n:"Shurelya's Battlesong",cat:"Support",dmg:"none",v:function(s,m,e){return cnt(m,"e")>=2||cnt(m,"v")>=2?[5,"The team speed turns your engage into a coordinated wave."]:[3,"A team speed active for picks and roams."];}}
 };
 
 /* Acceptance check (Phase 2, step 1): every ITEMDEFS name must exist in SR_ITEMS, matched by name. */
