@@ -9,12 +9,12 @@
 var DATA_VERSION="26.12";
 
 "use strict";
-/* tags: f frontline, e engage, c cc, a AP, d AD, h scaling, r early, p poke, n enchanter, v dive, g global, s sustain/heal */
+/* tags: f frontline, e engage, c cc, a AP, d AD, h scaling, r early, p poke, n enchanter, v dive, g global, s sustain/heal, m manahungry */
 var TIERPTS={S:9,A:8,B:7,C:6,D:5};
 var TIERCOL={S:"var(--tS)",A:"var(--tA)",B:"var(--tB)",C:"var(--tC)",D:"var(--tD)"};
 var ROLES=["TOP","JGL","MID","ADC","SUP"];
 var ROLENL={TOP:"Top",JGL:"Jgl",MID:"Mid",ADC:"ADC",SUP:"Sup"};
-var TAGNAMES={f:"Frontline",e:"Engage",c:"Crowd control",a:"AP damage",d:"AD damage",h:"Scaling",r:"Early game",p:"Poke",n:"Enchanter",v:"Diver",g:"Global",s:"Sustain"};
+var TAGNAMES={f:"Frontline",e:"Engage",c:"Crowd control",a:"AP damage",d:"AD damage",h:"Scaling",r:"Early game",p:"Poke",n:"Enchanter",v:"Diver",g:"Global",s:"Sustain",m:"Mana"};
 
 var C=[
 ["Aatrox","TOP","A","f d r s"],["Ambessa","TOP","A","d v r"],["Camille","TOP","B","d v"],
@@ -22,7 +22,7 @@ var C=[
 ["Fiora","TOP","A","d h s"],["Gangplank","TOP","B","d h p"],["Garen","TOP","S","f d"],
 ["Gnar","TOP","B","f c d e"],["Gragas","TOP","B","f e c a"],["Gwen","TOP","B","a h"],
 ["Illaoi","TOP","A","f d s"],["Irelia","TOP","B","d v r"],["Jax","TOP","S","d h"],
-["Jayce","TOP","B","d p r"],["K'Sante","TOP","A","f c"],["Kayle","TOP","B","a h"],
+["Jayce","TOP","B","d p r m"],["K'Sante","TOP","A","f c"],["Kayle","TOP","B","a h"],
 ["Kennen","TOP","B","a c e"],["Kled","TOP","B","d e r"],["Malphite","TOP","A","f e c a"],
 ["Mordekaiser","TOP","D","a f"],["Nasus","TOP","B","f h c s"],["Olaf","TOP","B","d r s"],
 ["Ornn","TOP","A","f e c"],["Pantheon","TOP","B","d r c"],["Poppy","TOP","B","f c"],
@@ -36,30 +36,30 @@ var C=[
 ["Diana","JGL","A","a e v"],["Ekko","JGL","A","a v"],["Elise","JGL","B","a r c"],
 ["Evelynn","JGL","B","a v"],["Fiddlesticks","JGL","A","a e c s"],["Graves","JGL","B","d r"],
 ["Hecarim","JGL","B","e d v"],["Ivern","JGL","C","n c"],["Jarvan IV","JGL","A","e c d f"],
-["Karthus","JGL","B","a h g"],["Kayn","JGL","B","d v s"],["Kha'Zix","JGL","B","d v"],
+["Karthus","JGL","B","a h g m"],["Kayn","JGL","B","d v s"],["Kha'Zix","JGL","B","d v"],
 ["Kindred","JGL","B","d h"],["Lee Sin","JGL","B","d r v"],["Lillia","JGL","B","a c h"],
-["Master Yi","JGL","S","d h"],["Nidalee","JGL","C","a p r s"],["Nocturne","JGL","B","d v g"],
+["Master Yi","JGL","S","d h"],["Nidalee","JGL","C","a p r s m"],["Nocturne","JGL","B","d v g"],
 ["Nunu & Willump","JGL","B","f e c a g s"],["Rammus","JGL","B","f e c"],["Rek'Sai","JGL","B","d r e"],
 ["Rengar","JGL","B","d v r"],["Sejuani","JGL","A","f e c a"],["Shaco","JGL","C","d r"],
-["Shyvana","JGL","C","a d h"],["Skarner","JGL","A","f e c"],["Taliyah","JGL","B","a c g"],
+["Shyvana","JGL","C","a d h"],["Skarner","JGL","A","f e c"],["Taliyah","JGL","B","a c g m"],
 ["Udyr","JGL","B","f d r s"],["Vi","JGL","A","e c d"],["Viego","JGL","A","d v h s"],
 ["Warwick","JGL","B","f d r s"],["Xin Zhao","JGL","B","d e r"],["Zac","JGL","A","f e c a s"],
-["Ahri","MID","A","a c"],["Akali","MID","B","a v"],["Akshan","MID","B","d v g"],
-["Anivia","MID","B","a c h"],["Annie","MID","B","a e c"],["Aurelion Sol","MID","A","a h"],
-["Aurora","MID","A","a c"],["Azir","MID","A","a h"],["Cassiopeia","MID","B","a h"],
+["Ahri","MID","A","a c m"],["Akali","MID","B","a v"],["Akshan","MID","B","d v g"],
+["Anivia","MID","B","a c h m"],["Annie","MID","B","a e c m"],["Aurelion Sol","MID","A","a h m"],
+["Aurora","MID","A","a c"],["Azir","MID","A","a h m"],["Cassiopeia","MID","B","a h m"],
 ["Corki","MID","C","d p h"],["Fizz","MID","B","a v"],["Galio","MID","B","f a c e g"],
-["Heimerdinger","MID","C","a p"],["Hwei","MID","A","a p c"],["Kassadin","MID","S","a h"],
-["Katarina","MID","B","a v"],["LeBlanc","MID","B","a v"],["Lissandra","MID","B","a e c"],
+["Heimerdinger","MID","C","a p"],["Hwei","MID","A","a p c m"],["Kassadin","MID","S","a h m"],
+["Katarina","MID","B","a v"],["LeBlanc","MID","B","a v"],["Lissandra","MID","B","a e c m"],
 ["Malzahar","MID","B","a c h"],["Mel","MID","A","a p"],
-["Naafiri","MID","B","d v"],["Neeko","MID","B","a e c"],["Orianna","MID","A","a c e"],
-["Qiyana","MID","B","d v r"],["Ryze","MID","B","a h g"],["Swain","MID","A","a f c e s"],
-["Sylas","MID","A","a v c s"],["Syndra","MID","A","a c p"],["Talon","MID","B","d v g"],
-["Twisted Fate","MID","B","a c g"],["Veigar","MID","B","a h c"],["Vel'Koz","MID","B","a p c"],
-["Vex","MID","A","a e c"],["Viktor","MID","A","a h c"],["Xerath","MID","B","a p c"],
+["Naafiri","MID","B","d v"],["Neeko","MID","B","a e c"],["Orianna","MID","A","a c e m"],
+["Qiyana","MID","B","d v r"],["Ryze","MID","B","a h g m"],["Swain","MID","A","a f c e s m"],
+["Sylas","MID","A","a v c s"],["Syndra","MID","A","a c p m"],["Talon","MID","B","d v g"],
+["Twisted Fate","MID","B","a c g m"],["Veigar","MID","B","a h c"],["Vel'Koz","MID","B","a p c m"],
+["Vex","MID","A","a e c"],["Viktor","MID","A","a h c m"],["Xerath","MID","B","a p c m"],
 ["Yasuo","MID","S","d h c"],["Yone","MID","A","d h v c"],["Zed","MID","S","d v"],
-["Ziggs","MID","B","a p h"],["Zoe","MID","B","a p c"],
+["Ziggs","MID","B","a p h"],["Zoe","MID","B","a p c m"],
 ["Aphelios","ADC","B","d h"],["Ashe","ADC","S","d c p g"],["Caitlyn","ADC","S","d p h"],
-["Draven","ADC","B","d r"],["Ezreal","ADC","B","d p v"],["Jhin","ADC","A","d p c"],
+["Draven","ADC","B","d r"],["Ezreal","ADC","B","d p v m"],["Jhin","ADC","A","d p c"],
 ["Jinx","ADC","A","d h"],["Kai'Sa","ADC","A","d h v"],["Kalista","ADC","B","d v r"],
 ["Kog'Maw","ADC","B","d h p"],["Lucian","ADC","A","d r v"],["Miss Fortune","ADC","B","d p"],
 ["Nilah","ADC","B","d h v s"],["Samira","ADC","A","d v r s"],["Sivir","ADC","B","d h"],
@@ -69,10 +69,10 @@ var C=[
 ["Alistar","SUP","A","f e c s"],["Bard","SUP","A","c g s"],["Blitzcrank","SUP","S","e c"],
 ["Brand","SUP","B","a p"],["Braum","SUP","A","f c"],["Janna","SUP","B","n c"],
 ["Karma","SUP","A","n p c"],["Leona","SUP","S","f e c"],["Lulu","SUP","C","n c"],
-["Lux","SUP","A","a p c"],["Maokai","SUP","B","f e c a s"],["Milio","SUP","B","n s"],
+["Lux","SUP","A","a p c m"],["Maokai","SUP","B","f e c a s"],["Milio","SUP","B","n s"],
 ["Morgana","SUP","S","a c p"],["Nami","SUP","B","n c s"],["Nautilus","SUP","S","f e c"],
 ["Pyke","SUP","S","e c v r"],["Rakan","SUP","A","e c n"],["Rell","SUP","A","f e c"],
-["Renata Glasc","SUP","B","n c e"],["Senna","SUP","A","d n p h s"],["Seraphine","SUP","S","a n c s"],
+["Renata Glasc","SUP","B","n c e"],["Senna","SUP","A","d n p h s"],["Seraphine","SUP","S","a n c s m"],
 ["Sona","SUP","B","n c h s"],["Soraka","SUP","B","n s"],["Taric","SUP","B","f c n h s"],
 ["Thresh","SUP","S","e c f"],["Yuumi","SUP","D","n s"],["Zilean","SUP","B","c n h"],
 ["Zyra","SUP","B","a p c"]

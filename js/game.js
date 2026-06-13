@@ -160,7 +160,7 @@ function counters(meT,enT){
    candidate: Guardian Angel carry bias (boost when the holder hard-carries). */
 function applyFit(baseResult,item,champ){
   var r=baseResult;
-  if((item.dmg==="ap"&&!has(champ,"a"))||(item.dmg==="ad"&&!has(champ,"d"))){
+  if((item.dmg==="ap"&&!has(champ,"a"))||(item.dmg==="ad"&&!has(champ,"d"))||(item.dmg==="mana"&&!has(champ,"m"))){
     r=[1,"Wasted stats on this champion."];
   }
   if(typeof item.fit==="function") r=item.fit(r,champ,arguments[3],arguments[4]);
