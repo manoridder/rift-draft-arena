@@ -194,7 +194,25 @@ var ITEMDEFS={
  redemption:{n:"Redemption",cat:"Support",dmg:"none",v:function(s,m,e){return cnt(e,"v")>=2?[4,"The big heal lands under their burst."]:[3,"Teamwide heal in every fight."];}},
  helia:{n:"Echoes of Helia",cat:"Support",dmg:"none",v:function(s,m,e){return cnt(m,"p")>=2?[4,"Poke wars, the echoes sustain you."]:[3,"Chip healing and a slow."];}},
  flowingwater:{n:"Staff of Flowing Water",cat:"Support",dmg:"none",v:function(s,m,e){return cnt(m,"a")>=3?[4,"Your AP team loves the buff."]:[2,"Few AP allies to boost."];}},
- dawncore:{n:"Dawncore",cat:"Support",dmg:"none",v:function(s,m,e){return has(s,"h")||cnt(m,"h")>=3?[4,"Scaling heal and shield power."]:[3,"Steady mana and heal power."];}}
+ dawncore:{n:"Dawncore",cat:"Support",dmg:"none",v:function(s,m,e){return has(s,"h")||cnt(m,"h")>=3?[4,"Scaling heal and shield power."]:[3,"Steady mana and heal power."];}},
+ spiritvisage:{n:"Spirit Visage",cat:"Tank",dmg:"none",v:function(s,m,e){return cnt(m,"n")>=1||cnt(m,"s")>=2?[5,"Amplifies every heal and shield your team has."]:cnt(e,"a")>=2?[3,"Magic resist and regen into their AP."]:[2,"Some bonus regen, little to amplify."];}},
+ forceofnature:{n:"Force of Nature",cat:"Tank",dmg:"none",v:function(s,m,e){return cnt(e,"a")>=3?[5,"A wall of magic resist against their AP."]:cnt(e,"a")>=2?[4,"Strong magic resist into their AP."]:[1,"Barely any enemy AP to wall off."];}},
+ frozenheart:{n:"Frozen Heart",cat:"Tank",dmg:"mana",v:function(s,m,e){return cnt(e,"d")>=3?[5,"Their AD carries lose a chunk of attack speed."]:cnt(e,"d")>=2?[4,"Armor and an attack speed cut on their AD."]:[2,"Few auto-attackers to slow down."];}},
+ deadmans:{n:"Dead Man's Plate",cat:"Tank",dmg:"none",v:function(s,m,e){return cnt(e,"d")>=2?[4,"Armor and a slow to stick onto their AD threats."]:has(s,"e")?[4,"The momentum sets up your engage."]:[3,"Solid armor and roam speed."];}},
+ jaksho:{n:"Jak'Sho, The Protean",cat:"Tank",dmg:"none",v:function(s,m,e){return cnt(m,"f")===1?[5,"Solo frontline scaling into both damage types."]:cnt(e,"a")>=2&&cnt(e,"d")>=2?[4,"Mixed enemy damage, you scale into both."]:[3,"Steady dual resist scaling."];}},
+ iceborn:{n:"Iceborn Gauntlet",cat:"Tank",dmg:"mana",v:function(s,m,e){return cnt(e,"d")>=2?[4,"Armor plus a slow field to lock their AD down."]:[3,"Armor and a slow on your spells."];}},
+ witsend:{n:"Wit's End",cat:"Damage",dmg:"none",v:function(s,m,e){return cnt(e,"a")>=2?[5,"Attack speed bruiser answer to their AP."]:cnt(e,"a")>=1?[3,"Some magic resist and on-hit value."]:[2,"Little enemy AP to punish."];}},
+ hollowradiance:{n:"Hollow Radiance",cat:"Tank",dmg:"none",v:function(s,m,e){return cnt(e,"a")>=2&&cnt(e,"f")>=2?[4,"Magic resist that burns their grouped frontline."]:[3,"Health, magic resist and a burn aura."];}},
+ shojin:{n:"Spear of Shojin",cat:"Damage",dmg:"ad",v:function(s,m,e){return has(s,"h")?[4,"Your ability based carry scales harder every fight."]:[3,"Steady ability damage and haste."];}},
+ serylda:{n:"Serylda's Grudge",cat:"Damage",dmg:"ad",v:function(s,m,e){return cnt(e,"f")>=2?[5,"Armor pen plus a slow to cut through their tanks."]:cnt(e,"f")===1?[3,"Armor pen into their one tank."]:[2,"Squishy enemies, the pen is overkill."];}},
+ liandry:{n:"Liandry's Torment",cat:"Magic",dmg:"ap",v:function(s,m,e){return cnt(e,"f")>=2?[5,"Percent health burn melts their stacked health."]:cnt(e,"f")===1?[3,"Burn into their one big body."]:[2,"Few health stackers to burn."];}},
+ botrk:{n:"Blade of The Ruined King",cat:"Damage",dmg:"ad",v:function(s,m,e){return cnt(e,"f")>=2?[5,"Percent health on-hit shreds their big bodies."]:cnt(e,"v")>=1?[3,"On-hit and a slow against their dive."]:[2,"Little health to chunk on-hit."];}},
+ ravenous:{n:"Ravenous Hydra",cat:"Damage",dmg:"ad",v:function(s,m,e){return cnt(m,"v")>=1||has(s,"v")?[4,"Cleave and lifesteal for your divers."]:[3,"Cleave and sustain on the frontline."];}},
+ riftmaker:{n:"Riftmaker",cat:"Magic",dmg:"ap",v:function(s,m,e){return has(s,"v")||(has(s,"a")&&has(s,"f"))?[4,"Sustained AP bruiser damage in long fights."]:[3,"Omnivamp and true damage over time."];}},
+ stridebreaker:{n:"Stridebreaker",cat:"Damage",dmg:"ad",v:function(s,m,e){return cnt(m,"e")<=1?[4,"Gives your bruiser the engage tool the team lacks."]:[3,"Cleave damage with a built-in dash."];}},
+ nashors:{n:"Nashor's Tooth",cat:"Magic",dmg:"ap",v:function(s,m,e){return has(s,"a")?[4,"On-hit AP spike for your ability carry."]:[2,"Little AP here to power the on-hit."];}},
+ cosmicdrive:{n:"Cosmic Drive",cat:"Magic",dmg:"ap",v:function(s,m,e){return cnt(m,"p")>=2?[4,"Speed to kite in your poke and spread comp."]:[3,"Haste and move speed on your mage."];}},
+ chempunk:{n:"Chempunk Chainsword",cat:"Damage",dmg:"ad",v:function(s,m,e){return cnt(e,"n")>=1||cnt(e,"s")>=2?[5,"AD grievous wounds against their healing."]:[2,"Little enemy healing to cut."];}}
 };
 
 /* Acceptance check (Phase 2, step 1): every ITEMDEFS name must exist in SR_ITEMS, matched by name. */
