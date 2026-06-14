@@ -219,7 +219,7 @@ function newGame(){
   G={taken:{},myBans:[],foeBans:[],my:{TOP:null,JGL:null,MID:null,ADC:null,SUP:null},
      foe:{TOP:null,JGL:null,MID:null,ADC:null,SUP:null},
      side:null,seq:null,idx:0,items:[null,null,null,null,null],
-     arena:true,rerolls:2,offer:null,
+     arena:true,rerolls:2,offer:null,plan:null,foePlan:null,
      foeName:MODE==="daily"?"Daily Gauntlet":FOES[Math.min(skillNow(),FOES.length-1)]};
 }
 function teamArr(p){return ROLES.map(function(r){return p[r];});}
@@ -595,7 +595,38 @@ document.querySelectorAll("#scr-items .controls .tab").forEach(function(t){
 document.getElementById("shopSearch").addEventListener("input",function(e){
   shopQ=e.target.value.toLowerCase();renderShopGrid();
 });
-document.getElementById("lockItems").addEventListener("click",function(){snd("pick");startMatch();});
+document.getElementById("lockItems").addEventListener("click",function(){snd("pick");startPlan();});
+
+/* ================= PLAN PHASE ================= */
+/* Display data for the seven plans. Step 2 adds keystone/nice/forgive scoring to the same ids. */
+var PLANS=[
+ {id:"fronttoback",label:"Front to back",win:"Fight slowly and safely, your carries hit the nearest safe target and win with sustained damage.",needs:"At least 2 frontline"},
+ {id:"dive",label:"Dive",win:"Start fast, kill their carry, end the fight before it begins.",needs:"At least 2 divers"},
+ {id:"pick",label:"Pick",win:"Catch one target with crowd control and burst, then take an objective five versus four.",needs:"At least 3 crowd control"},
+ {id:"protect",label:"Get Down Mr President",win:"Build the team around one hypercarry and keep them alive at all costs.",needs:"A scaling carry and a frontline"},
+ {id:"pokesiege",label:"Poke and siege",win:"Chunk their health from range, force them off objectives, take towers without full fights.",needs:"At least 2 poke"},
+ {id:"splitpush",label:"Split push",win:"Force them to answer the side lanes, then take objectives with the numbers advantage.",needs:"A global, or 2 divers"},
+ {id:"earlyskirmish",label:"Early skirmish",win:"Win the small fights early and snowball before they come online.",needs:"An early game champ plus cc or engage"}
+];
+function planLabel(id){for(var i=0;i<PLANS.length;i++){if(PLANS[i].id===id)return PLANS[i].label;}return null;}
+function startPlan(){
+  G.plan=null;
+  var grid=document.getElementById("planGrid");grid.innerHTML="";
+  PLANS.forEach(function(p){
+    var d=document.createElement("div");d.className="plancard";d.dataset.plan=p.id;
+    d.innerHTML='<b>'+p.label+'</b><span class="win">'+p.win+'</span><span class="needs">Needs: '+p.needs+'</span>';
+    d.addEventListener("click",function(){
+      snd("click");G.plan=p.id;
+      grid.querySelectorAll(".plancard").forEach(function(x){x.classList.remove("sel");});
+      d.classList.add("sel");
+      document.getElementById("lockPlan").disabled=false;
+    });
+    grid.appendChild(d);
+  });
+  document.getElementById("lockPlan").disabled=true;
+  show("scr-plan");
+}
+document.getElementById("lockPlan").addEventListener("click",function(){snd("pick");startMatch();});
 
 /* ================= RIFT MAP ================= */
 var LANES={
@@ -706,7 +737,7 @@ function startMatch(){
     if(i>=phases.length){
       var won=wins>=2;
       mapEnd(won);
-      matchResult={won:won,myEv:myEv,foeEv:foeEv,foePicks:foePicks,meT:meT,foeT:foeT,phaseWins:phaseWins,phaseDetail:phaseDetail,side:G.side};
+      matchResult={won:won,myEv:myEv,foeEv:foeEv,foePicks:foePicks,meT:meT,foeT:foeT,phaseWins:phaseWins,phaseDetail:phaseDetail,side:G.side,plan:G.plan};
       document.getElementById("matchNext").innerHTML='<button class="btn primary" id="toAnalysis">View analysis</button>';
       document.getElementById("toAnalysis").addEventListener("click",showAnalysis);
       return;
@@ -774,7 +805,8 @@ function showAnalysis(){
   }
   var cs=coachScore(R0.myEv);
   rb.innerHTML='<div class="resultbanner '+(R0.won?"win":"lose")+'"><h2>'+(R0.won?"VICTORY":"DEFEAT")+'</h2>'+lpline+
-    '<div class="lp neutral">Coach score '+cs.score+'/100 \u00b7 grade '+cs.grade+' (your synergy, counters and items, tier luck excluded)</div></div>';
+    '<div class="lp neutral">Coach score '+cs.score+'/100 \u00b7 grade '+cs.grade+' (your synergy, counters and items, tier luck excluded)</div>'+
+    (R0.plan?'<div class="lp neutral">Your plan: '+planLabel(R0.plan)+'</div>':"")+'</div>';
   var mx=Math.max(R0.myEv.total,R0.foeEv.total,1);
   document.getElementById("powerCompare").innerHTML='<h3>TEAM POWER (hidden during the game)</h3>'+
     '<div class="pbrow"><span class="who" style="color:var(--blue)">YOU</span><div class="track"><i style="width:'+Math.round(100*R0.myEv.total/mx)+'%;background:var(--blue)"></i></div><b>'+R0.myEv.total+'</b></div>'+
