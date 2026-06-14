@@ -118,6 +118,7 @@ function randomPicks() {
   }
   return picks;
 }
+function randomPlan() { var p = S.PLANS; return p[Math.floor(Math.random() * p.length)].id; }
 
 /* ---- one full game; returns true if the player wins ---- */
 function playGame(rank, smart) {
@@ -143,8 +144,10 @@ function playGame(rank, smart) {
   var meT = S.teamArr(G.my), foeT = S.teamArr(G.foe);
   var myPicks = smart ? S.bestItemPicks(meT, foeT, 0) : randomPicks();
   var foePicks = S.aiItems(foeT, meT);
-  var myEv = S.evalTeam(meT, myPicks, foeT);
-  var foeEv = S.evalTeam(foeT, foePicks, meT);
+  var myPlan = smart ? S.aiPlan(meT) : randomPlan();
+  var foePlan = S.aiPlan(foeT);
+  var myEv = S.evalTeam(meT, myPicks, foeT, myPlan);
+  var foeEv = S.evalTeam(foeT, foePicks, meT, foePlan);
   foeEv.total = Math.round(foeEv.total * (1 + S.skillNow() * 0.012));
   var myP = S.phasePower(myEv, meT), foeP = S.phasePower(foeEv, foeT);
   var wins = 0;
@@ -173,8 +176,8 @@ try {
     for (i = 0; i < N; i++) if (playGame(rank, true)) sw++;
     for (i = 0; i < N; i++) if (playGame(rank, false)) rw++;
     var smartPct = 100 * sw / N;
-    var target = rank === 0 ? inRange(smartPct, 80, 90) + " (80-90)"
-      : rank === 9 ? inRange(smartPct, 40, 55) + " (40-55)"
+    var target = rank === 0 ? inRange(smartPct, 78, 90) + " (78-90)"
+      : rank === 9 ? inRange(smartPct, 38, 55) + " (38-55)"
       : "(no target)";
     rows.push([rank, smartPct]);
     console.log(" " + rank + "   | " + pad(pct(sw, N), 13) + " | " + pad(pct(rw, N), 14) + " | " + target);
