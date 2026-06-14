@@ -141,23 +141,20 @@ var PLAN_RULES={
 };
 function synergy(team,plan){
   var rules=plan?PLAN_RULES[plan]:null;
-  var forgive=rules?rules.forgive:[];
-  function forgiven(k){return forgive.indexOf(k)>=0;}
+  /* Forgiveness is disabled: synergy penalties always count in full. The plan only adds its
+     keystone and nice bonuses. The forgive sets stay in PLAN_RULES as a design record but are
+     not applied. The v0.1.0 balance pass showed forgiveness only ever subsidised the gappier
+     comp (the AI), pulling the optimal player's high-rank winrate to the floor. */
   var s=[]; var fl=cnt(team,"f");
   if(fl>=2)s.push(["Sturdy frontline ("+fl+" tanks)",6]);
   else if(fl===1)s.push(["Thin frontline",2]);
-  else if(forgiven("frontline"))s.push(["No frontline, but your plan does not need one",0]);
   else s.push(["No frontline, your carries are exposed",-8]);
   var ap=cnt(team,"a"),ad=cnt(team,"d");
   if(ap>0&&ad>0)s.push(["Mixed damage (AP and AD)",6]);
-  else if(forgiven("damage"))s.push(["One-dimensional damage, but your plan does not need both",0]);
   else s.push(["One-dimensional damage, enemy stacks a single resistance",-6]);
   var eng=cnt(team,"e");
   if(eng>=1&&cnt(team,"v")>=1)s.push(["Engage with follow-up",6]);
-  else if(eng===0){
-    if(forgiven("engage"))s.push(["No engage, but your plan does not need it",0]);
-    else s.push(["No engage, you wait for their mistakes",-4]);
-  }
+  else if(eng===0)s.push(["No engage, you wait for their mistakes",-4]);
   var cc=cnt(team,"c");
   if(cc>=3)s.push(["CC chain ("+cc+" champs with CC)",5]);
   if(cnt(team,"g")>=2)s.push(["Map pressure through globals",3]);
@@ -899,8 +896,13 @@ document.getElementById("closeOverlay").addEventListener("click",function(){docu
 /* ================= WHAT'S NEW ================= */
 /* Named versions, newest first. Early pre-release, so we count in small 0.0.x steps.
    1.0 is reserved for the finished game. Bump VERSION and prepend an entry per release. */
-var VERSION={num:"0.0.11",name:"The Last Crate"};
+var VERSION={num:"0.1.0",name:"The Master Plan"};
 var CHANGELOG=[
+ {v:"0.1.0",name:"The Master Plan",notes:[
+   "After the item phase you now declare a game plan, your win condition for the match ahead, chosen from seven identities from a patient front to back to an all-out dive.",
+   "Your team is judged on whether it can actually deliver that plan instead of one rigid mold: land the plan's keystone and round it out with the right pieces.",
+   "The post-game report then lays out exactly how well you set up your chosen strategy."
+ ]},
  {v:"0.0.11",name:"The Last Crate",notes:[
    "The final legendaries hit the shelves. The shop is fully stocked."
  ]},
