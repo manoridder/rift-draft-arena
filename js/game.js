@@ -127,20 +127,48 @@ document.getElementById("sfxVolR").addEventListener("input",function(){
 });
 
 /* ================= SCORING ================= */
-function synergy(team){
+/* Plan scoring rules, keyed by the same ids as PLANS (display data lives there).
+   keystone: hard requirement, -10 if missing and +4 if met. nice: tags that grant a small
+   bonus when present, never a penalty. forgive: default synergy penalties the plan waives. */
+var PLAN_RULES={
+ fronttoback:{keystone:function(t){return cnt(t,"f")>=2;},fail:"Front to back has no frontline to fight behind",nice:["h","n","c"],forgive:["engage"]},
+ dive:{keystone:function(t){return cnt(t,"v")>=2;},fail:"Dive lacks the divers to collapse on their carry",nice:["e","f","r"],forgive:[]},
+ pick:{keystone:function(t){return cnt(t,"c")>=3;},fail:"Pick has no cc chain to lock a target down",nice:["e","r","g"],forgive:["damage","frontline"]},
+ protect:{keystone:function(t){return cnt(t,"h")>=1&&cnt(t,"f")>=1;},fail:"Get Down Mr President has no carry and frontline core to protect",nice:["n","s","c"],forgive:["engage"]},
+ pokesiege:{keystone:function(t){return cnt(t,"p")>=2;},fail:"Poke and siege has too little poke to chip them down",nice:["g","c","h"],forgive:["frontline","engage"]},
+ splitpush:{keystone:function(t){return cnt(t,"g")>=1||cnt(t,"v")>=2;},fail:"Split push has no global or diver to threaten side lanes",nice:["h","c","p"],forgive:["engage","frontline"]},
+ earlyskirmish:{keystone:function(t){return cnt(t,"r")>=1&&(cnt(t,"c")>=1||cnt(t,"e")>=1);},fail:"Early skirmish has no early tool to force fights",nice:["g","v","d"],forgive:["frontline"]}
+};
+function synergy(team,plan){
+  var rules=plan?PLAN_RULES[plan]:null;
+  var forgive=rules?rules.forgive:[];
+  function forgiven(k){return forgive.indexOf(k)>=0;}
   var s=[]; var fl=cnt(team,"f");
   if(fl>=2)s.push(["Sturdy frontline ("+fl+" tanks)",6]);
   else if(fl===1)s.push(["Thin frontline",2]);
+  else if(forgiven("frontline"))s.push(["No frontline, but your plan does not need one",0]);
   else s.push(["No frontline, your carries are exposed",-8]);
   var ap=cnt(team,"a"),ad=cnt(team,"d");
   if(ap>0&&ad>0)s.push(["Mixed damage (AP and AD)",6]);
+  else if(forgiven("damage"))s.push(["One-dimensional damage, but your plan does not need both",0]);
   else s.push(["One-dimensional damage, enemy stacks a single resistance",-6]);
   var eng=cnt(team,"e");
   if(eng>=1&&cnt(team,"v")>=1)s.push(["Engage with follow-up",6]);
-  else if(eng===0)s.push(["No engage, you wait for their mistakes",-4]);
+  else if(eng===0){
+    if(forgiven("engage"))s.push(["No engage, but your plan does not need it",0]);
+    else s.push(["No engage, you wait for their mistakes",-4]);
+  }
   var cc=cnt(team,"c");
   if(cc>=3)s.push(["CC chain ("+cc+" champs with CC)",5]);
   if(cnt(team,"g")>=2)s.push(["Map pressure through globals",3]);
+  if(rules){
+    if(rules.keystone(team))s.push(["Keystone met: "+planLabel(plan),4]);
+    else s.push([rules.fail,-10]);
+    rules.nice.forEach(function(tag){
+      var n=cnt(team,tag);
+      if(n>=1)s.push(["Bonus: "+TAGNAMES[tag].toLowerCase()+" rounds out the comp",n>=2?2:1]);
+    });
+  }
   return s;
 }
 function counters(meT,enT){
@@ -166,13 +194,13 @@ function applyFit(baseResult,item,champ){
   if(typeof item.fit==="function") r=item.fit(r,champ,arguments[3],arguments[4]);
   return r;
 }
-function evalTeam(team,picks,enemy){
+function evalTeam(team,picks,enemy,plan){
   var base=team.reduce(function(a,c){return a+TIERPTS[c[2]];},0);
-  var syn=synergy(team); var synT=syn.reduce(function(a,x){return a+x[1];},0);
+  var syn=synergy(team,plan); var synT=syn.reduce(function(a,x){return a+x[1];},0);
   var ctr=counters(team,enemy); var ctrT=ctr.reduce(function(a,x){return a+x[1];},0);
   var itemRows=picks.map(function(p){
     var holder=team[p.slot]; var item=ITEMDEFS[p.itemId];
-    var r=applyFit(item.v(holder,team,enemy,null),item,holder,team,enemy);
+    var r=applyFit(item.v(holder,team,enemy,plan),item,holder,team,enemy);
     return {champ:holder,item:item.n,pts:r[0],why:r[1]};
   });
   var itemT=itemRows.reduce(function(a,x){return a+x.pts;},0);
@@ -609,6 +637,7 @@ var PLANS=[
  {id:"earlyskirmish",label:"Early skirmish",win:"Win the small fights early and snowball before they come online.",needs:"An early game champ plus cc or engage"}
 ];
 function planLabel(id){for(var i=0;i<PLANS.length;i++){if(PLANS[i].id===id)return PLANS[i].label;}return null;}
+function planWin(id){for(var i=0;i<PLANS.length;i++){if(PLANS[i].id===id)return PLANS[i].win;}return "";}
 function startPlan(){
   G.plan=null;
   var grid=document.getElementById("planGrid");grid.innerHTML="";
@@ -719,8 +748,8 @@ var matchResult=null;
 function startMatch(){
   var meT=teamArr(G.my),foeT=teamArr(G.foe);
   var foePicks=aiItems(foeT,meT);
-  var myEv=evalTeam(meT,G.items,foeT);
-  var foeEv=evalTeam(foeT,foePicks,meT);
+  var myEv=evalTeam(meT,G.items,foeT,G.plan);
+  var foeEv=evalTeam(foeT,foePicks,meT,G.foePlan);
   foeEv.total=Math.round(foeEv.total*(1+skillNow()*0.012));
   var myP=phasePower(myEv,meT),foeP=phasePower(foeEv,foeT);
   document.getElementById("matchFoe").textContent=G.foeName;
@@ -815,7 +844,8 @@ function showAnalysis(){
   document.getElementById("myTiers").innerHTML=R0.meT.map(function(c){
     return '<div class="champline"><div class="mini">'+imgTag(c)+'</div><span class="grow">'+c[0]+'</span><span class="tpill" style="background:'+TIERCOL[c[2]]+'">'+c[2]+'</span><span style="width:42px;text-align:right;color:var(--white)">'+TIERPTS[c[2]]+'</span></div>';
   }).join("");
-  document.getElementById("mySyn").innerHTML=synHtml(R0.myEv.syn);
+  var planHdr=R0.plan?'<div class="aline"><span style="color:var(--gold-bright)">Plan: '+planLabel(R0.plan)+'</span></div><div class="hint" style="margin:2px 0 8px">'+planWin(R0.plan)+'</div>':"";
+  document.getElementById("mySyn").innerHTML=planHdr+synHtml(R0.myEv.syn);
   document.getElementById("myCtr").innerHTML=synHtml(R0.myEv.ctr);
   document.getElementById("myItems").innerHTML=R0.myEv.items.map(function(row){
     var g=grade(row.pts);
@@ -829,6 +859,7 @@ function showAnalysis(){
   var fm=document.getElementById("mathPanel");
   fm.innerHTML='<h3>THE MATH</h3>'+
     '<p class="hint" style="margin-bottom:8px">Team power = tier points + synergy + counters + items. Phase power adds style modifiers: early champs and engage count extra in the early game, scalers in the late game, CC in the mid game. Each phase both teams roll 88 to 112 percent of their phase power, highest roll wins. Win 2 of 3 phases for the match. The AI gets a ladder handicap of times (1 + 0.012 per rank).</p>'+
+    (R0.plan?'<div class="aline"><span style="color:var(--gold-bright)">Your plan</span><span>'+planLabel(R0.plan)+'</span></div><p class="hint" style="margin:2px 0 8px">'+planWin(R0.plan)+'</p>':"")+
     '<div class="aline"><span style="color:var(--gold-bright)">Your totals</span><span>tiers '+Math.round(R0.myEv.base)+' / syn '+(R0.myEv.synT>=0?"+":"")+R0.myEv.synT+' / ctr +'+R0.myEv.ctrT+' / items +'+R0.myEv.itemT+' = '+R0.myEv.total+'</span></div>'+
     '<div class="aline"><span style="color:var(--gold-bright)">Enemy totals</span><span>tiers '+Math.round(R0.foeEv.base)+' / syn '+(R0.foeEv.synT>=0?"+":"")+R0.foeEv.synT+' / ctr +'+R0.foeEv.ctrT+' / items +'+R0.foeEv.itemT+' = '+R0.foeEv.total+' (after handicap)</span></div>'+
     '<div style="margin-top:10px;font-size:13px;color:var(--gold)">PHASE ROLLS</div>'+
