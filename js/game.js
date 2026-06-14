@@ -313,6 +313,17 @@ function aiItems(team,enemy){
   var smart=Math.min(1,0.3+skillNow()*0.078);
   return bestItemPicks(team,enemy,(1-smart)*5);
 }
+/* The AI commits to the plan that scores its finished comp best (synergy under each plan, so a
+   met keystone and bonuses win out), with a light R()-weighted tiebreak. Uses R() only, so the
+   daily seed stays deterministic. */
+function aiPlan(team){
+  var best=null,bs=-Infinity;
+  PLANS.forEach(function(p){
+    var sc=synergy(team,p.id).reduce(function(a,x){return a+x[1];},0)+R()*1.5;
+    if(sc>bs){bs=sc;best=p.id;}
+  });
+  return best;
+}
 
 /* ================= NAV & SHARED UI ================= */
 function show(id){
@@ -748,6 +759,7 @@ var matchResult=null;
 function startMatch(){
   var meT=teamArr(G.my),foeT=teamArr(G.foe);
   var foePicks=aiItems(foeT,meT);
+  G.foePlan=aiPlan(foeT);
   var myEv=evalTeam(meT,G.items,foeT,G.plan);
   var foeEv=evalTeam(foeT,foePicks,meT,G.foePlan);
   foeEv.total=Math.round(foeEv.total*(1+skillNow()*0.012));
@@ -766,7 +778,7 @@ function startMatch(){
     if(i>=phases.length){
       var won=wins>=2;
       mapEnd(won);
-      matchResult={won:won,myEv:myEv,foeEv:foeEv,foePicks:foePicks,meT:meT,foeT:foeT,phaseWins:phaseWins,phaseDetail:phaseDetail,side:G.side,plan:G.plan};
+      matchResult={won:won,myEv:myEv,foeEv:foeEv,foePicks:foePicks,meT:meT,foeT:foeT,phaseWins:phaseWins,phaseDetail:phaseDetail,side:G.side,plan:G.plan,foePlan:G.foePlan};
       document.getElementById("matchNext").innerHTML='<button class="btn primary" id="toAnalysis">View analysis</button>';
       document.getElementById("toAnalysis").addEventListener("click",showAnalysis);
       return;
@@ -867,7 +879,7 @@ function showAnalysis(){
       var nm=p.ph==="early"?"Early":p.ph==="mid"?"Mid":"Late";
       return '<div class="aline"><span>'+nm+': you '+p.mb+' rolled <b style="color:var(--white)">'+p.mr+'</b>, enemy '+p.eb+' rolled <b style="color:var(--white)">'+p.er+'</b></span><span class="'+(p.won?"pos":"neg")+'">'+(p.won?"won":"lost")+'</span></div>';
     }).join("")+
-    '<div style="margin-top:10px;font-size:13px;color:var(--gold)">ENEMY BREAKDOWN</div>'+
+    '<div style="margin-top:10px;font-size:13px;color:var(--gold)">ENEMY BREAKDOWN'+(R0.foePlan?' (plan: '+planLabel(R0.foePlan)+')':'')+'</div>'+
     synHtml(R0.foeEv.syn)+synHtml(R0.foeEv.ctr)+
     R0.foeEv.items.map(function(row){
       var g=grade(row.pts);
