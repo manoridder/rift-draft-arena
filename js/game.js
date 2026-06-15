@@ -418,9 +418,11 @@ function phaseName(){
 }
 function renderTeamInto(hostId,team){
   var host=document.getElementById(hostId);if(!host)return;host.innerHTML="";
+  var sideKey=hostId==="mySlots"?"my":hostId==="foeSlots"?"foe":null;
   ROLES.forEach(function(r){
     var c=team[r];
-    host.innerHTML+='<div class="pslot'+(c?" filled":"")+'">'+
+    var isNew=c&&G.lastPick&&G.lastPick.side===sideKey&&G.lastPick.role===r;
+    host.innerHTML+='<div class="pslot'+(c?" filled":"")+(isNew?" justpicked":"")+'">'+
       '<div class="pic">'+(c?slotImg(c)+'<span class="scrim"></span><span class="slotnm">'+c[0]+'</span>':"?")+'</div>'+
       '<div class="rl">'+ROLENL[r]+'</div></div>';
   });
@@ -428,6 +430,7 @@ function renderTeamInto(hostId,team){
 function renderTeams(){
   renderTeamInto("mySlots",G.my);
   renderTeamInto("foeSlots",G.foe);
+  G.lastPick=null;
 }
 function renderBans(){
   [["myBans",G.myBans],["foeBans",G.foeBans]].forEach(function(pair){
@@ -521,14 +524,14 @@ function doPlayer(c){
   var a=cur();
   G.taken[c[0]]=true;
   if(a.act==="ban"){snd("ban");G.myBans.push(c);}
-  else{snd("pick");G.my[c[1]]=c;}
+  else{snd("pick");G.my[c[1]]=c;G.lastPick={side:"my",role:c[1]};}
   G.idx++;advance();
 }
 function doEnemy(){
   var a=cur();
   var c=a.act==="ban"?aiBan():aiPick();
   G.taken[c[0]]=true;
-  if(a.act==="ban")G.foeBans.push(c);else G.foe[c[1]]=c;
+  if(a.act==="ban")G.foeBans.push(c);else{G.foe[c[1]]=c;G.lastPick={side:"foe",role:c[1]};}
   G.idx++;advance();
 }
 function advance(){
