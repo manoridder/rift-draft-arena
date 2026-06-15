@@ -218,6 +218,14 @@ h3,
   font-size: 13px;
   color: var(--gold);
 }
+.crest {
+  display: inline-flex;
+  align-items: center;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.5));
+}
+.crest svg {
+  display: block;
+}
 .lpbar {
   width: 120px;
   height: 9px;

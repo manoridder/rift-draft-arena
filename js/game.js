@@ -219,10 +219,14 @@ function todayStr(){var d=new Date();return d.getUTCFullYear()+"-"+String(d.getU
 function todaySeed(){return +todayStr().replace(/-/g,"");}
 
 var RANKS=["Iron","Bronze","Silver","Gold","Platinum","Emerald","Diamond","Master","Grandmaster","Challenger"];
+/* Gem color per rank, Iron gray up to Challenger pale gold. Display only, lines up with RANKS by index. */
+var RANKCOL=["#6b6b6b","#8c6239","#9fb0c3","#c8aa6e","#3fd0c4","#1f9e5a","#5aa9ff","#9b59c6","#e84057","#f0e6d2"];
 var ladder={ri:0,lp:0,champion:false};
 function skillNow(){return MODE==="daily"?5:ladder.ri;}
 function renderRank(){
   document.getElementById("rankTxt").textContent=RANKS[ladder.ri]+" \u00b7 "+ladder.lp+" LP";
+  var gem=document.getElementById("rankGem");
+  if(gem)gem.setAttribute("fill",RANKCOL[ladder.ri]);
   document.getElementById("lpFill").style.width=Math.min(100,ladder.lp)+"%";
 }
 function applyLP(won){
