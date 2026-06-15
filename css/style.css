@@ -506,6 +506,34 @@ h3,
 .side.foe h3 {
   color: var(--red);
 }
+.side.active {
+  animation: sideglow 1.6s ease-in-out infinite;
+}
+.side.me.active {
+  border-color: var(--blue);
+}
+.side.foe.active {
+  border-color: var(--red);
+  animation-name: sideglowfoe;
+}
+@keyframes sideglow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 rgba(10, 200, 185, 0);
+  }
+  50% {
+    box-shadow: 0 0 16px rgba(10, 200, 185, 0.28);
+  }
+}
+@keyframes sideglowfoe {
+  0%,
+  100% {
+    box-shadow: 0 0 0 rgba(232, 64, 87, 0);
+  }
+  50% {
+    box-shadow: 0 0 16px rgba(232, 64, 87, 0.28);
+  }
+}
 .slotrow {
   display: flex;
   gap: 8px;
@@ -1159,6 +1187,9 @@ h3,
   .ocard,
   .screen.active {
     transition: none;
+    animation: none;
+  }
+  .side.active {
     animation: none;
   }
 }

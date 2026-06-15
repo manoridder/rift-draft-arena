@@ -440,6 +440,16 @@ function renderBans(){
 function setDraftMsg(){
   var el=document.getElementById("draftMsg");
   var title=document.getElementById("draftPhaseTitle");
+  /* Glow the side that is on the clock. Runs before the draftDone return so both
+     sides come off when the draft completes (pTurn and eTurn are then both false). */
+  var meSide=document.querySelector(".side.me");
+  var foeSide=document.querySelector(".side.foe");
+  if(meSide&&foeSide){
+    var pTurn=!draftDone()&&cur().who==="P";
+    var eTurn=!draftDone()&&cur().who==="E";
+    meSide.classList.toggle("active",pTurn);
+    foeSide.classList.toggle("active",eTurn);
+  }
   if(draftDone()){title.textContent="Draft complete";el.textContent="";el.classList.remove("enemy");return;}
   title.textContent=phaseName();
   var a=cur();
