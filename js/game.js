@@ -497,7 +497,8 @@ function renderPickers(){
     cards.innerHTML="";
     G.offer.forEach(function(ch){
       var d=document.createElement("div");d.className="ocard";
-      d.innerHTML='<div class="cpic">'+imgTag(ch)+'</div><b>'+ch[0]+'</b><span>'+ROLENL[ch[1]]+'</span>';
+      d.innerHTML='<div class="cpic">'+slotImg(ch)+'<span class="scrim"></span><span class="slotnm">'+ch[0]+'</span></div>'+
+        '<span class="ocrole">'+ROLENL[ch[1]]+'</span>';
       d.addEventListener("click",function(){doPlayer(ch);});
       cards.appendChild(d);
     });
