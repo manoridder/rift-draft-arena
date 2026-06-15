@@ -421,8 +421,8 @@ function renderTeamInto(hostId,team){
   ROLES.forEach(function(r){
     var c=team[r];
     host.innerHTML+='<div class="pslot'+(c?" filled":"")+'">'+
-      '<div class="pic">'+(c?imgTag(c):"?")+'</div>'+
-      '<div class="rl">'+ROLENL[r]+'</div><div class="nm">'+(c?c[0]:"")+'</div></div>';
+      '<div class="pic">'+(c?slotImg(c)+'<span class="scrim"></span><span class="slotnm">'+c[0]+'</span>':"?")+'</div>'+
+      '<div class="rl">'+ROLENL[r]+'</div></div>';
   });
 }
 function renderTeams(){
