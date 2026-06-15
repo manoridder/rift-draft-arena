@@ -1,0 +1,3 @@
+# Disposable patch bundles dropped in for `git apply` (applied, committed, then deleted).
+# They live in the synced Documents folder and otherwise keep reappearing in git status.
+*-update/
