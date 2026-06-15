@@ -973,7 +973,7 @@ h3,
 .shopitem {
   display: flex;
   gap: 9px;
-  align-items: center;
+  align-items: flex-start;
   background: var(--panel2);
   border: 1px solid var(--line);
   padding: 8px;
@@ -995,6 +995,7 @@ h3,
 .shopitem .info b { display: block; color: var(--gold-bright); font-size: 12.5px; }
 .shopitem .srmeta { display: block; margin-top: 2px; font-size: 10.5px; color: var(--gold); opacity: 0.9; }
 .shopitem .srmeta .g { color: var(--gold-bright); font-weight: 600; }
+.shopitem .idesc { display: block; margin-top: 4px; font-size: 10.5px; line-height: 1.35; color: var(--text); }
 /* ---- plan phase ---- */
 .plangrid {
   display: grid;

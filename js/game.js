@@ -599,7 +599,7 @@ function renderShopGrid(){
       var owned=picksFor(G.activeChamp).some(function(p){return p.itemId===id;});
       var d=document.createElement("div");
       d.className="shopitem"+(owned?" owned":"");
-      d.innerHTML='<div class="ico">'+itemIcon(id)+'</div><div class="info"><b>'+it.n+'</b>'+srMeta(it.n)+'</div>';
+      d.innerHTML='<div class="ico">'+itemIcon(id)+'</div><div class="info"><b>'+it.n+'</b>'+srMeta(it.n)+(it.d?'<span class="idesc">'+it.d+'</span>':"")+'</div>';
       d.addEventListener("click",function(){assignItem(id);});
       g.appendChild(d);
     });
@@ -916,8 +916,12 @@ document.getElementById("closeOverlay").addEventListener("click",function(){docu
 /* ================= WHAT'S NEW ================= */
 /* Named versions, newest first. Early pre-release, so we count in small 0.0.x steps.
    1.0 is reserved for the finished game. Bump VERSION and prepend an entry per release. */
-var VERSION={num:"0.1.1",name:"Lock It In"};
+var VERSION={num:"0.1.1",name:"Read the Fine Print"};
 var CHANGELOG=[
+ {v:"0.1.1",name:"Read the Fine Print",notes:[
+   "Every item description now matches what the item actually does on the Rift, rewritten from the real in-game text.",
+   "Each item in the shop now shows that one-line description under its stats, so you draft knowing exactly what you are buying."
+ ]},
  {v:"0.1.1",name:"Lock It In",notes:[
    "Ranked is now an open pick phase: pick any champion whose role is still open, just like champ select. No more rerolls.",
    "The three random offers and the two rerolls move to the daily challenge for now."
