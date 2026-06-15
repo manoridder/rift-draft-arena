@@ -636,7 +636,7 @@ function startItems(){
   document.getElementById("peekName").textContent=G.foeName.toUpperCase()+" \u00b7 KNOW YOUR ENEMY";
   var peek=document.getElementById("peekSlots");peek.innerHTML="";
   foeT.forEach(function(c){
-    peek.innerHTML+='<div class="pslot filled"><div class="pic">'+imgTag(c)+'</div><div class="nm">'+c[0]+'</div></div>';
+    peek.innerHTML+='<div class="pslot filled"><div class="pic">'+slotImg(c)+'<span class="scrim"></span><span class="slotnm">'+c[0]+'</span></div></div>';
   });
   G.items=[];G.activeChamp=0;shopCat="ALL";shopQ="";
   var sb=document.getElementById("shopSearch");if(sb)sb.value="";
