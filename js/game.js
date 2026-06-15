@@ -999,8 +999,15 @@ document.getElementById("closeOverlay").addEventListener("click",function(){docu
 /* ================= WHAT'S NEW ================= */
 /* Named versions, newest first. Early pre-release, so we count in small 0.0.x steps.
    1.0 is reserved for the finished game. Bump VERSION and prepend an entry per release. */
-var VERSION={num:"0.1.1",name:"Read the Fine Print"};
+var VERSION={num:"0.1.2",name:"Splash Damage"};
 var CHANGELOG=[
+ {v:"0.1.2",name:"Splash Damage",notes:[
+   "Champions now show their splash art across the draft. Your team, the enemy team and your plan screen swap small square icons for full portrait cards with the champion name set over the art.",
+   "The daily challenge's three pick cards get the same portrait treatment.",
+   "The draft feels alive: the side on the clock glows, and a champion flashes the moment it locks into a slot, for your picks and the AI's.",
+   "The three audio buttons in the top bar collapse into one speaker icon that opens the audio panel, where the music and effects toggles now sit next to their volume sliders.",
+   "Your rank wears a crest. Ten hand drawn emblems that grow as you climb, from a rough block of iron to a winged, crowned Challenger."
+ ]},
  {v:"0.1.1",name:"Read the Fine Print",notes:[
    "Every item description now matches what the item actually does on the Rift, rewritten from the real in-game text.",
    "Each item in the shop now shows that one-line description under its stats, so you draft knowing exactly what you are buying."
