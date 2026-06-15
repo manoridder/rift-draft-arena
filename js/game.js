@@ -457,15 +457,35 @@ function renderBanGrid(){
     onPick:function(c){doPlayer(c);}
   });
 }
+/* Ranked picks are an open pick phase like a real lobby: pick any champion whose role you have
+   not filled yet. Taken champions and filled roles are greyed out. The daily challenge keeps the
+   three-option offer plus rerolls. */
+function renderPickGrid(){
+  champGrid(document.getElementById("draftGrid"),draftRole,draftQ,{
+    badges:false,
+    isOff:function(c){return !!G.taken[c[0]]||!!G.my[c[1]];},
+    onPick:function(c){doPlayer(c);}
+  });
+}
+/* Which open grid the player uses on their turn: bans always, and picks too in ranked.
+   The daily challenge serves picks through the offer panel instead, so this returns null there.
+   Returns the renderer to call, or null when the offer panel should show. */
+function playerGrid(){
+  if(!G||!G.seq||draftDone())return null;
+  var a=cur();
+  if(a.who!=="P")return null;
+  if(a.act==="ban")return renderBanGrid;
+  if(a.act==="pick"&&MODE!=="daily")return renderPickGrid;
+  return null;
+}
 function renderPickers(){
   var offer=document.getElementById("offerWrap");
   var classic=document.getElementById("classicWrap");
   if(draftDone()){offer.style.display="none";classic.style.display="none";return;}
-  var a=cur();
-  if(a.who==="P"&&a.act==="ban"){
-    classic.style.display="block";offer.style.display="none";renderBanGrid();return;
-  }
+  var grid=playerGrid();
+  if(grid){classic.style.display="block";offer.style.display="none";grid();return;}
   classic.style.display="none";offer.style.display="block";
+  var a=cur();
   var cards=document.getElementById("offerCards");
   var rb=document.getElementById("rerollBtn");
   if(a.who==="P"){
@@ -502,7 +522,7 @@ function advance(){
   renderTeams();renderBans();setDraftMsg();
   if(!draftDone()){
     var a=cur();
-    if(a.who==="P"&&a.act==="pick")makeOffer();
+    if(a.who==="P"&&a.act==="pick"&&MODE==="daily")makeOffer();
   }
   renderPickers();
   if(draftDone()){setTimeout(startItems,700);return;}
@@ -510,11 +530,11 @@ function advance(){
 }
 bindTabs(document.getElementById("scr-draft"),function(r){
   draftRole=r;
-  if(G&&G.seq&&!draftDone()&&cur().who==="P"&&cur().act==="ban")renderBanGrid();
+  var grid=playerGrid();if(grid)grid();
 });
 document.getElementById("draftSearch").addEventListener("input",function(e){
   draftQ=e.target.value.toLowerCase();
-  if(G&&G.seq&&!draftDone()&&cur().who==="P"&&cur().act==="ban")renderBanGrid();
+  var grid=playerGrid();if(grid)grid();
 });
 document.getElementById("rerollBtn").addEventListener("click",function(){
   if(!G||G.rerolls<=0)return;
@@ -896,8 +916,12 @@ document.getElementById("closeOverlay").addEventListener("click",function(){docu
 /* ================= WHAT'S NEW ================= */
 /* Named versions, newest first. Early pre-release, so we count in small 0.0.x steps.
    1.0 is reserved for the finished game. Bump VERSION and prepend an entry per release. */
-var VERSION={num:"0.1.0",name:"The Master Plan"};
+var VERSION={num:"0.1.1",name:"Lock It In"};
 var CHANGELOG=[
+ {v:"0.1.1",name:"Lock It In",notes:[
+   "Ranked is now an open pick phase: pick any champion whose role is still open, just like champ select. No more rerolls.",
+   "The three random offers and the two rerolls move to the daily challenge for now."
+ ]},
  {v:"0.1.0",name:"The Master Plan",notes:[
    "After the item phase you now declare a game plan, your win condition for the match ahead, chosen from seven identities from a patient front to back to an all-out dive.",
    "Your team is judged on whether it can actually deliver that plan instead of one rigid mold: land the plan's keystone and round it out with the right pieces.",
