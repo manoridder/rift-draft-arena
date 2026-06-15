@@ -1008,13 +1008,11 @@ var CHANGELOG=[
    "The three audio buttons in the top bar collapse into one speaker icon that opens the audio panel, where the music and effects toggles now sit next to their volume sliders.",
    "Your rank wears a crest. Ten hand drawn emblems that grow as you climb, from a rough block of iron to a winged, crowned Challenger."
  ]},
- {v:"0.1.1",name:"Read the Fine Print",notes:[
-   "Every item description now matches what the item actually does on the Rift, rewritten from the real in-game text.",
-   "Each item in the shop now shows that one-line description under its stats, so you draft knowing exactly what you are buying."
- ]},
  {v:"0.1.1",name:"Lock It In",notes:[
    "Ranked is now an open pick phase: pick any champion whose role is still open, just like champ select. No more rerolls.",
-   "The three random offers and the two rerolls move to the daily challenge for now."
+   "The three random offers and the two rerolls move to the daily challenge for now.",
+   "Every item description now matches what the item actually does on the Rift, rewritten from the real in-game text.",
+   "Each item in the shop now shows that one-line description under its stats, so you draft knowing exactly what you are buying."
  ]},
  {v:"0.1.0",name:"The Master Plan",notes:[
    "After the item phase you now declare a game plan, your win condition for the match ahead, chosen from seven identities from a patient front to back to an all-out dive.",
