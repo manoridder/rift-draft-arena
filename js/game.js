@@ -416,16 +416,18 @@ function phaseName(){
   if(G.idx<16)return "Ban phase 2";
   return "Pick phase 2";
 }
-function renderTeams(){
-  [["mySlots",G.my],["foeSlots",G.foe]].forEach(function(pair){
-    var host=document.getElementById(pair[0]);host.innerHTML="";
-    ROLES.forEach(function(r){
-      var c=pair[1][r];
-      host.innerHTML+='<div class="pslot'+(c?" filled":"")+'">'+
-        '<div class="pic">'+(c?imgTag(c):"?")+'</div>'+
-        '<div class="rl">'+ROLENL[r]+'</div><div class="nm">'+(c?c[0]:"")+'</div></div>';
-    });
+function renderTeamInto(hostId,team){
+  var host=document.getElementById(hostId);if(!host)return;host.innerHTML="";
+  ROLES.forEach(function(r){
+    var c=team[r];
+    host.innerHTML+='<div class="pslot'+(c?" filled":"")+'">'+
+      '<div class="pic">'+(c?imgTag(c):"?")+'</div>'+
+      '<div class="rl">'+ROLENL[r]+'</div><div class="nm">'+(c?c[0]:"")+'</div></div>';
   });
+}
+function renderTeams(){
+  renderTeamInto("mySlots",G.my);
+  renderTeamInto("foeSlots",G.foe);
 }
 function renderBans(){
   [["myBans",G.myBans],["foeBans",G.foeBans]].forEach(function(pair){
@@ -680,6 +682,9 @@ function startPlan(){
     });
     grid.appendChild(d);
   });
+  renderTeamInto("planMySlots",G.my);
+  renderTeamInto("planFoeSlots",G.foe);
+  var pfn=document.getElementById("planFoeName");if(pfn)pfn.textContent=(G.foeName||"OPPONENT").toUpperCase();
   document.getElementById("lockPlan").disabled=true;
   show("scr-plan");
 }
