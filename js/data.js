@@ -120,6 +120,7 @@ var IMGFIX={"Wukong":"MonkeyKing","Nunu & Willump":"Nunu","Renata Glasc":"Renata
 function imgId(c){ return IMGFIX[c[0]] || c[0].replace(/[^A-Za-z]/g,""); }
 function imgUrl(c){ return "https://ddragon.leagueoflegends.com/cdn/"+DD_VERSION+"/img/champion/"+imgId(c)+".png"; }
 function imgUrl2(c){ return "https://cdn.communitydragon.org/latest/champion/"+imgId(c)+"/square"; }
+function imgLoading(c){ return "https://ddragon.leagueoflegends.com/cdn/img/champion/loading/"+imgId(c)+"_0.jpg"; }
 window.imgFail=function(img){
   var step=+img.dataset.step||0;
   if(step===0){ img.dataset.step=1; img.src=img.dataset.alt; return; }
@@ -132,6 +133,10 @@ function initials(name){
 }
 function imgTag(c){
   return '<img src="'+imgUrl(c)+'" data-alt="'+imgUrl2(c)+'" alt="'+c[0]+'" loading="lazy" onerror="imgFail(this)"><span class="fb">'+initials(c[0])+'</span>';
+}
+/* Portrait loading art for team slots, with a graceful fallback: loading art -> square icon -> initials. */
+function slotImg(c){
+  return '<img src="'+imgLoading(c)+'" data-alt="'+imgUrl(c)+'" alt="'+c[0]+'" loading="lazy" onerror="imgFail(this)"><span class="fb">'+initials(c[0])+'</span>';
 }
 function picHtml(c,cls){ return '<div class="'+cls+'">'+imgTag(c)+'</div>'; }
 function has(c,t){ return c[3].split(" ").indexOf(t)>=0; }
